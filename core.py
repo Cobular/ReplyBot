@@ -43,7 +43,7 @@ async def on_message(message):
     cur = conn.cursor()
 
     cur.execute('INSERT INTO messages (author, message_content, avitar_hash) VALUES (%s, %s, %s)',
-                (message.author.username, message.content, message.author.avitar))
+                (message.author.id, message.content, message.author.avitar))
     cur.execute("SELECT * FROM messages;")
     cur.fetchone()
     conn.commit()
