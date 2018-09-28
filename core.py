@@ -27,5 +27,4 @@ async def on_message(message):
         await client.add_reaction(message, '™')
 
 
-
 client.run("NDk0OTM2MDAwMzYwMDg3NTYz.Do6xPA.6cofu9CfSaKkhYJsa6TzJmrtOhk")
