@@ -39,9 +39,6 @@ async def on_message(message):
     if re.search('flex tape', message.content, re.IGNORECASE):
         await client.add_reaction(message, '™')
 
-    message_author_nick = message.author.nick
-    message_content = message.content
-
     # Starts the database session
     cur = conn.cursor()
 
