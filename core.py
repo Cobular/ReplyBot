@@ -39,11 +39,14 @@ async def on_message(message):
     if re.search('flex tape', message.content, re.IGNORECASE):
         await client.add_reaction(message, '™')
 
+    message_author_nick = message.author.nick
+    message_content = message.content
+
     # Starts the database session
     cur = conn.cursor()
 
-    cur.execute('INSERT INTO messages (author, message_content) VALUES (%s, %s)',
-                (message.author.nick, message.content))
+    cur.execute("INSERT INTO messages (author, message_content) VALUES (%s, %s)",
+                (message_author_nick, message_content))
     cur.execute("SELECT * FROM messages;")
     cur.fetchone()
     conn.commit()
