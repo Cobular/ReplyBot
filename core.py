@@ -19,7 +19,7 @@ async def on_message(message):
         selector = random.randint(1,10)
         if selector <= 3:
             current_message = await client.send_message(message.channel, 'I sawed this boat in half!', tts=True)
-        if selector > 4 & selector <= 5:
+        if selector > 4 and selector <= 5:
             current_message = await client.send_message(message.channel, 'Hi, Phil Swift here for flex tape!', tts=True)
         if selector <= 6:
             current_message = await client.send_message(message.channel, 'That\'s a lot of damage!', tts=True)
