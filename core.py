@@ -5,6 +5,16 @@ import re
 client = discord.Client()
 
 
+def quote_selector(argument):
+    switch = {
+        1: "I sawed this boat in half!",
+        2: "I sawed this boat in half!",
+        3: "Hi, Phil Swift here for flex tape!",
+        4: "Hi, Phil Swift here for flex tape!",
+        5: "That\'s a lot of damage!",
+        6: "That\'s a lot of damage!"}
+    return switch.get(argument, "Invalid Quote Choice")
+
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
@@ -15,16 +25,11 @@ async def on_message(message):
     if message.author == client.user:
         return
     if re.search('flex', message.content, re.IGNORECASE):
-        print('flexy message recived')
-        selector = random.randint(1,10)
-        if selector <= 3:
-            current_message = await client.send_message(message.channel, 'I sawed this boat in half!', tts=True)
-        if selector > 4 and selector <= 5:
-            current_message = await client.send_message(message.channel, 'Hi, Phil Swift here for flex tape!', tts=True)
-        if selector <= 6:
-            current_message = await client.send_message(message.channel, 'That\'s a lot of damage!', tts=True)
-        await client.delete_message(current_message)
-        print(selector)
+        print('flexy message recived')  # Debuging Stuff
+        selector = random.randint(1,6)  # Randomly select a choice
+        current_message = await  client.send_message(message.channel, quote_selector(selector), tts=True)  #Actually send the message
+        await client.delete_message(current_message)  # Quiclky delete the message so it is more sneaky
+        print(selector)  # Debuging Selection Choices
 
     if re.search('flex tape', message.content, re.IGNORECASE):
         await client.add_reaction(message, '™')
