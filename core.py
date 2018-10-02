@@ -17,9 +17,9 @@ async def on_message(message):
     if re.search('flex', message.content, re.IGNORECASE):
         print('flexy message recived')
         selector = random.randint(1,10)
-        if selector <= 4:
+        if selector <= 3:
             current_message = await client.send_message(message.channel, 'I sawed this boat in half!', tts=True)
-        if selector > 4 & selector < 6:
+        if selector > 4 & selector <= 5:
             current_message = await client.send_message(message.channel, 'Hi, Phil Swift here for flex tape!', tts=True)
         if selector <= 6:
             current_message = await client.send_message(message.channel, 'That\'s a lot of damage!', tts=True)
