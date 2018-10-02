@@ -24,6 +24,7 @@ async def on_message(message):
         if selector <= 6:
             current_message = await client.send_message(message.channel, 'That\'s a lot of damage!', tts=True)
         await client.delete_message(current_message)
+        print(selector)
 
     if re.search('flex tape', message.content, re.IGNORECASE):
         await client.add_reaction(message, '™')
