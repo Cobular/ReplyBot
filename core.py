@@ -49,10 +49,12 @@ async def on_message(message):
     message_limit = 2000
     cur = conn.cursor()
     cur.execute("""SELECT * FROM messages;""") # Get all the messages
+    print(cur.fetchone())
     if cur.rowcount > message_limit:
         cur.execute("""SELECT MIN(id) FROM messages;""")
         lowest_id = cur.fetchone()
-        print("Number of lowest ID:" + lowest_id)
+        print("Number of lowest ID:")
+        print(lowest_id)
         cur.execute("""DELETE FROM messages WHERE id = %s""", (lowest_id,))
 
 
