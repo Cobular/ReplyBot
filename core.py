@@ -3,6 +3,11 @@ import random
 import re
 import os
 import psycopg2
+import logging
+from discord.ext import commands
+
+bot = commands.Bot(command_prefix="r!", command_not_found="Heck! That command doesn't exist!!")
+logging.basicConfig(level=logging.INFO)
 
 DATABASE_URL = os.environ['DATABASE_URL']
 conn = psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -39,24 +44,29 @@ async def on_message(message):
     if re.search('flex tape', message.content, re.IGNORECASE):
         await client.add_reaction(message, '™')
 
-    # Logging the messages to the database
+    ### Logging the messages to the database
     cur = conn.cursor()
     cur.execute("""INSERT INTO messages (username, message_content) VALUES (%s, %s);""",
                 (message.author.nick, message.clean_content))
     conn.commit()
 
-    # Cleaning messages at `message_limit` messages
+
+    ### Cleaning messages at `message_limit` messages to avoid $$ issues
     message_limit = 2000
     cur = conn.cursor()
     cur.execute("""SELECT * FROM messages;""") # Get all the messages
-    print(cur.fetchone())
     if cur.rowcount > message_limit:
         cur.execute("""SELECT MIN(id) FROM messages;""")
         lowest_id = cur.fetchone()
-        print("Number of lowest ID:")
+        print("Deleted message with id:")
         print(lowest_id)
         cur.execute("""DELETE FROM messages WHERE id = %s""", (lowest_id,))
 
+
+@bot.command()
+async def start_reply(search_content):
+    await search_content.send(search_content.clean_content)
+    pass
 
 
 client.run("NDk0OTM2MDAwMzYwMDg3NTYz.Do6xPA.6cofu9CfSaKkhYJsa6TzJmrtOhk")
