@@ -39,14 +39,21 @@ async def on_message(message):
     if re.search('flex tape', message.content, re.IGNORECASE):
         await client.add_reaction(message, '™')
 
-    # Starts the database session
+    # Logging the messages to the database
     cur = conn.cursor()
-
     cur.execute("""INSERT INTO messages (username, message_content) VALUES (%s, %s);""",
                 (message.author.nick, message.clean_content))
-    cur.execute("SELECT * FROM messages;")
-    cur.fetchone()
     conn.commit()
+
+    # Cleaning messages at `message_limit` messages
+    message_limit = 2000
+    cur = conn.cursor()
+    cur.execute("""SELECT * FROM messages;""") # Get all the messages
+    if cur.rowcount > message_limit:
+        cur.execute("""SELECT MIN(id) FROM messages;""")
+        lowest_id = cur.fetchone()
+        print("Number of lowest ID:" + lowest_id)
+        cur.execute("""DELETE FROM messages WHERE id = %s""", (lowest_id,))
 
 
 
