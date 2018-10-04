@@ -42,7 +42,7 @@ async def on_message(message):
     # Starts the database session
     cur = conn.cursor()
 
-    cur.execute("""INSERT INTO messages (author, message_content) VALUES (%s, %s);""",
+    cur.execute("""INSERT INTO messages (username, message_content) VALUES (%s, %s);""",
                 ("test_nic", "message_content"))
     cur.execute("SELECT * FROM messages;")
     cur.fetchone()
