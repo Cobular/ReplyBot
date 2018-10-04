@@ -49,6 +49,7 @@ async def on_message(message):
     message_limit = 2000
     cur = conn.cursor()
     cur.execute("""SELECT * FROM messages;""") # Get all the messages
+    print("Number of messages: " + cur.fetchone())
     if cur.rowcount > message_limit:
         cur.execute("""SELECT MIN(id) FROM messages;""")
         lowest_id = cur.fetchone()
