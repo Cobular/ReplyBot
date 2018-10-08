@@ -6,7 +6,8 @@ import psycopg2
 import logging
 from discord.ext import commands
 
-bot = commands.Bot(command_prefix="r!", command_not_found="Heck! That command doesn't exist!!")
+bot_prefix = "rsp!"
+bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That command doesn't exist!!")
 logging.basicConfig(level=logging.INFO)
 
 DATABASE_URL = os.environ['DATABASE_URL']
@@ -47,7 +48,7 @@ async def on_message(message):
     ### Logging the messages to the database
     cur = conn.cursor()
     cur.execute("""INSERT INTO messages (username, message_content) VALUES (%s, %s);""",
-                (message.author.nick, message.clean_content))
+                (message.author.mention, message.clean_content))
     conn.commit()
 
 
@@ -63,10 +64,19 @@ async def on_message(message):
         cur.execute("""DELETE FROM messages WHERE id = %s""", (lowest_id,))
 
 
-@bot.command()
-async def start_reply(search_content):
-    await search_content.send(search_content.clean_content)
-    pass
+    ### Checks for bot command starters and removes the bot part from the message content
+    if message.clean_content.startswith(bot_prefix):
+        command_content = re.sub(r"rsp!", "", message.clean_content)
+        print(command_content)
+        ### Runs the reply command
+        if 'reply' in command_content:
+            command_content = re.sub(r"reply", "", command_content)
+            print(command_content)
+            cur = conn.cursor()
+            cur.execute(
+                """SELECT id FROM messages WHERE %s LIKE \'%\' || message_content || \'%\' ORDER BY id desc LIMIT 1;""",
+                (command_content))
+            print(cur.fetchone())
 
 
 client.run("NDk0OTM2MDAwMzYwMDg3NTYz.Do6xPA.6cofu9CfSaKkhYJsa6TzJmrtOhk")
