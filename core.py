@@ -62,21 +62,26 @@ async def on_message(message):
         print("Deleted message with id:")
         print(lowest_id)
         cur.execute("""DELETE FROM messages WHERE id = %s""", (lowest_id,))
+        conn.commit()
 
 
     ### Checks for bot command starters and removes the bot part from the message content
     if message.clean_content.startswith(bot_prefix):
         command_content = re.sub(r"rsp!", "", message.clean_content)
         print(command_content)
-        ### Runs the reply command
+        ### Runs the reply command. Lots of filtering, exlpained inlive
         if 'reply' in command_content:
-            command_content = re.sub(r"reply", "", command_content)
+            command_content = re.sub(r"reply", "", command_content)  # Removes the command prefix `reply` from the string
             print(command_content)
             cur = conn.cursor()
-            cur.execute(
-                """SELECT id FROM messages WHERE %s LIKE \'%\' || message_content || \'%\' ORDER BY id desc LIMIT 1;""",
-                (command_content))
+            term = command_content.replace('=', '==').replace('%', '=%').replace('_', '=_')  # Redefines the characters that will cause issues (ones that need to be escaped) in other ways using the new escape character
+            sql = """SELECT id FROM messages WHERE message_content LIKE %(content)s ESCAPE '='"""  # Defines the query, specifically redefined the sql escape character as `=`. This resolves issues with the `\` as the escape character conflicting at different levels down the chain.
+            cur.execute(sql, dict(content='%' + term + '%'))  # Actually runs the command
             print(cur.fetchone())
+            conn.commit()
+
+            # Does the responding to the message
+            
 
 
 client.run("NDk0OTM2MDAwMzYwMDg3NTYz.Do6xPA.6cofu9CfSaKkhYJsa6TzJmrtOhk")
