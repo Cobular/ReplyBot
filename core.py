@@ -37,13 +37,13 @@ async def on_message(message):
     if message.author == client.user:
         return
     if re.search('flex', message.content, re.IGNORECASE):
-        await client.change_nickname(me, 'Phil Swift')
+        await client.change_nickname(me, 'Phil Swift') # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
         print('flexy message recived')  # Debuging Stuff
         selector = random.randint(1,6)  # Randomly select a choice
         current_message = await  client.send_message(message.channel, quote_selector(selector), tts=True)  #Actually send the message
         await client.delete_message(current_message)  # Quiclky delete the message so it is more sneaky
         print(selector)  # Debuging Selection Choices
-        await client.change_nickname(me, 'ReactionBot')
+        await client.change_nickname(me, 'ReactionBot')  # Default Icon: https://i.imgur.com/NTHcYgR.jpg
 
     if re.search('flex tape', message.content, re.IGNORECASE):
         await client.add_reaction(message, '™')
