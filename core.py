@@ -64,7 +64,7 @@ async def on_message(message):
         command_content = re.sub(r"rsp!", "", message.clean_content)
         ### Runs the reply command. Lots of filtering, exlpained inlive
         if 'reply' in command_content:
-            command_content = re.sub(r"reply", "", command_content)  # Removes the command prefix `reply` from the string
+            command_content = re.sub(r"reply ", "", command_content)  # Removes the command prefix `reply ` from the string
             print("Raw message: " + command_content)
             cur = conn.cursor()
             term = command_content.replace('=', '==').replace('%', '=%').replace('_', '=_')  # Redefines the characters that will cause issues (ones that need to be escaped) in other ways using the new escape character
