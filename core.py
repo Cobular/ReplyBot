@@ -15,7 +15,6 @@ conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
 client = discord.Client()
 
-
 def quote_selector(argument):
     switch = {
         1: "I sawed this boat in half!",
@@ -33,14 +32,18 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    me = message.server.me
+
     if message.author == client.user:
         return
     if re.search('flex', message.content, re.IGNORECASE):
+        await client.change_nickname(me, 'Phil Swift')
         print('flexy message recived')  # Debuging Stuff
         selector = random.randint(1,6)  # Randomly select a choice
         current_message = await  client.send_message(message.channel, quote_selector(selector), tts=True)  #Actually send the message
         await client.delete_message(current_message)  # Quiclky delete the message so it is more sneaky
         print(selector)  # Debuging Selection Choices
+        await client.change_nickname(me, 'ReactionBot')
 
     if re.search('flex tape', message.content, re.IGNORECASE):
         await client.add_reaction(message, '™')
