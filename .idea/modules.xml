@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ReactionBot.iml" filepath="$PROJECT_DIR$/.idea/ReactionBot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ReactionBot/.idea/ReactionBot.iml" filepath="$PROJECT_DIR$/../ReactionBot/.idea/ReactionBot.iml" />
     </modules>
   </component>
 </project>

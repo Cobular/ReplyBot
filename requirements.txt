@@ -7,6 +7,7 @@ docopt==0.6.2
 idna==2.7
 multidict==4.4.2
 pipreqs==0.4.9
+psycopg2-binary==2.7.5
 requests==2.19.1
 urllib3==1.23
 websockets==3.4
