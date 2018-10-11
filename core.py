@@ -87,9 +87,8 @@ async def on_message(message):
             # Check if there is no id found
             if output_message_id is None:
                 print("Search returned Nothing")
-                e = "The search returned nothing. Please try again with a less specific search or confirm that the search text matches the original"
-                t = Thread(target=ReturnTextError, args=(e,))
-                await t.start()
+                error_message = "The search returned nothing. Please try again with a less specific search or confirm that the search text matches the original"
+                await client.send_message(message.channel, error_message)
                 return
             else:
                 print(output_message_id[0])
@@ -114,15 +113,6 @@ async def on_message(message):
     cur.execute("""INSERT INTO messages (username, message_content) VALUES (%s, %s);""",
                 (message.author.mention, message.clean_content))
     conn.commit()
-
-
-async def ReturnTextError(error_message):
-    print("Error message thread starting")
-    error_message_object = await client.send_message(error_message)
-    time.sleep(3)
-    await client.delete_message(error_message_object)
-    print("Error message thread ending")
-
 
 
 client.run(BOT_TOKEN)
