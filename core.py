@@ -11,6 +11,10 @@ bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That comm
 logging.basicConfig(level=logging.INFO)
 
 DATABASE_URL = os.environ['DATABASE_URL']
+BOT_TOKEN = os.environ['BOT_TOKEN']
+print(BOT_TOKEN)
+# Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
+
 conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
 client = discord.Client()
@@ -98,4 +102,4 @@ async def on_message(message):
     conn.commit()
 
 
-client.run("NDk0OTM2MDAwMzYwMDg3NTYz.Do6xPA.6cofu9CfSaKkhYJsa6TzJmrtOhk")
+client.run(BOT_TOKEN)
