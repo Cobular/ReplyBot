@@ -11,11 +11,11 @@
         <property name="sslfactory" value="org.postgresql.ssl.NonValidatingFactory" />
       </driver-properties>
     </data-source>
-    <data-source source="LOCAL" name="HerokuSQL - Developmenrt" uuid="4dafd9e1-efcb-4d69-a64b-bd0ddc07bc3f">
+    <data-source source="LOCAL" name="HerokuSQL - Dev" uuid="6de96af7-92ec-4893-8984-e43b5638560c">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://ec2-23-23-80-20.compute-1.amazonaws.com :5432/d9islsv0i8ghc3</jdbc-url>
+      <jdbc-url>jdbc:postgresql://ec2-54-221-225-11.compute-1.amazonaws.com:5432/d7aigu72ld0ucv</jdbc-url>
       <driver-properties>
         <property name="ssl" value="true" />
         <property name="sslfactory" value="org.postgresql.ssl.NonValidatingFactory" />
