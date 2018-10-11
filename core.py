@@ -5,6 +5,9 @@ import os
 import psycopg2
 import logging
 from discord.ext import commands
+from threading import Thread
+import time
+
 
 bot_prefix = "rsp!"
 bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That command doesn't exist!!")
@@ -12,12 +15,12 @@ logging.basicConfig(level=logging.INFO)
 
 DATABASE_URL = os.environ['DATABASE_URL']
 BOT_TOKEN = os.environ['BOT_TOKEN']
-print(BOT_TOKEN)
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
 
 conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
 client = discord.Client()
+
 
 def quote_selector(argument):
     switch = {
@@ -28,6 +31,7 @@ def quote_selector(argument):
         5: "That\'s a lot of damage!",
         6: "That\'s a lot of damage!"}
     return switch.get(argument, "Invalid Quote Choice")
+
 
 @client.event
 async def on_ready():
@@ -44,7 +48,7 @@ async def on_message(message):
         await client.change_nickname(me, 'Phil Swift') # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
         print('flexy message recived')  # Debuging Stuff
         selector = random.randint(1,6)  # Randomly select a choice
-        current_message = await  client.send_message(message.channel, quote_selector(selector), tts=True)  #Actually send the message
+        current_message = await client.send_message(message.channel, quote_selector(selector), tts=True)  #Actually send the message
         await client.delete_message(current_message)  # Quiclky delete the message so it is more sneaky
         print(selector)  # Debuging Selection Choices
         await client.change_nickname(me, 'ReactionBot')  # Default Icon: https://i.imgur.com/NTHcYgR.jpg
@@ -78,8 +82,18 @@ async def on_message(message):
             sql = """SELECT id FROM messages WHERE message_content LIKE %(content)s ESCAPE '=' LIMIT 1;"""  # Defines the query, specifically redefined the sql escape character as `=`. This resolves issues with the `\` as the escape character conflicting at different levels down the chain.
             cur.execute(sql, dict(content='%' + term + '%'))  # Actually runs the command
             output_message_id = cur.fetchone()
-            print(output_message_id[0])
             conn.commit()
+
+            # Check if there is no id found
+            if output_message_id is None:
+                print("Search returned Nothing")
+                e = "The search returned nothing. Please try again with a less specific search or confirm that the search text matches the original"
+                t = Thread(target=ReturnTextError, args=(e,))
+                await t.start()
+                return
+            else:
+                print(output_message_id[0])
+
 
             # Does the responding to the message
             cur = conn.cursor()
@@ -100,6 +114,15 @@ async def on_message(message):
     cur.execute("""INSERT INTO messages (username, message_content) VALUES (%s, %s);""",
                 (message.author.mention, message.clean_content))
     conn.commit()
+
+
+async def ReturnTextError(error_message):
+    print("Error message thread starting")
+    error_message_object = await client.send_message(error_message)
+    time.sleep(3)
+    await client.delete_message(error_message_object)
+    print("Error message thread ending")
+
 
 
 client.run(BOT_TOKEN)
