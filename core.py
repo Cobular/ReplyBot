@@ -73,10 +73,11 @@ async def on_message(message):
     ### Checks for bot command starters and removes the bot part from the message content
     if message.clean_content.startswith(bot_prefix):
         command_content = re.sub(r"rsp!", "", message.clean_content)
+
         ### Runs the reply command. Lots of filtering, exlpained inlive
-        if 'reply' in command_content:
+        if command_content.startswith('reply'):
             command_content = re.sub(r"reply ", "", command_content)  # Removes the command prefix `reply ` from the string
-            print("Raw message: " + command_content)
+            print("Reply command processed. Raw message: " + command_content)
             cur = conn.cursor()
             term = command_content.replace('=', '==').replace('%', '=%').replace('_', '=_')  # Redefines the characters that will cause issues (ones that need to be escaped) in other ways using the new escape character
             sql = """SELECT id FROM messages WHERE message_content LIKE %(content)s ESCAPE '=' LIMIT 1;"""  # Defines the query, specifically redefined the sql escape character as `=`. This resolves issues with the `\` as the escape character conflicting at different levels down the chain.
@@ -106,6 +107,16 @@ async def on_message(message):
             output_message_overall = output_message_username[0] + ": " + output_message_content[0]
             await client.send_message(message.channel, output_message_overall)
             conn.commit()
+
+        ### Runs the help command
+        if command_content.startswith('help'):
+            command_content = re.sub(r"help ", "", command_content)  # Removes the command prefix `reply ` from the string
+            print("Print command processed. Raw message: " + command_content)
+            await client.send_message(message.channel, "**Command Root:** `rsp!` " + os.linesep +
+                                      "**Commands:** " + os.linesep +
+                                      "`rsp!reply search-term`- Searches the last 2000 messages for the search term then sends that in the channel of the invocation message.")
+
+
 
 
     ### Logging the messages to the database, moved to the bottom to avoid selecting the invocation message
