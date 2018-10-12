@@ -94,7 +94,6 @@ async def on_message(message):
             else:
                 print(output_message_id[0])
 
-
             # Does the responding to the message
             cur = conn.cursor()
             cur.execute("""SELECT username FROM messages WHERE id = %s;""", (output_message_id[0],))
@@ -105,8 +104,9 @@ async def on_message(message):
             print(output_message_content)
             print(output_message_id)
             output_message_overall = output_message_username[0] + ": " + output_message_content[0]
-            await client.send_message(message.channel, output_message_overall)
+            await client.send_message(message.channel, "`" + output_message_overall + "`")
             conn.commit()
+
 
         ### Runs the help command
         if command_content.startswith('help'):
