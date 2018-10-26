@@ -92,7 +92,7 @@ async def on_message(message):
             print("Reply command processed. Raw message: " + command_content)
             cur = conn.cursor()
             term = command_content.replace('=', '==').replace('%', '=%').replace('_', '=_')  # Redefines the characters that will cause issues (ones that need to be escaped) in other ways using the new escape character
-            sql = """SELECT id FROM messages WHERE message_content LIKE %(content)s ESCAPE '=' LIMIT 1;"""  # Defines the query, specifically redefined the sql escape character as `=`. This resolves issues with the `\` as the escape character conflicting at different levels down the chain.
+            sql = """SELECT id FROM messages WHERE message_content ILIKE %(content)s ESCAPE '=' LIMIT 1;"""  # Defines the query, specifically redefined the sql escape character as `=`. This resolves issues with the `\` as the escape character conflicting at different levels down the chain.
             cur.execute(sql, dict(content='%' + term + '%'))  # Actually runs the command
             output_message_id = cur.fetchone()
             conn.commit()
