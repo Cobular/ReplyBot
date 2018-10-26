@@ -62,7 +62,7 @@ async def on_message(message):
         selector = random.randint(1,6)  # Randomly select a choice
         current_message = await client.send_message(message.channel, quote_selector(selector), tts=True)  #Actually send the message
         await client.delete_message(current_message)  # Quiclky delete the message so it is more sneaky
-        print(selector)  # Debuging Selection Choices
+        print(selector)  # Debugging Selection Choices
         await client.change_nickname(me, 'ReactionBot')  # Default Icon: https://i.imgur.com/NTHcYgR.jpg
 
     if re.search('flex tape', message.content, re.IGNORECASE):
@@ -115,8 +115,7 @@ async def on_message(message):
             print(output_message_username)
             print(output_message_content)
             print(output_message_id)
-            output_message_overall = output_message_username[0] + ": " + output_message_content[0]
-            await client.send_message(message.channel, "`" + output_message_overall + "`")
+            await client.send_message(message.channel, output_message_username[0] + " `" + output_message_content[0] + "`")
             conn.commit()
 
 
