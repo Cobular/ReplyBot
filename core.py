@@ -15,7 +15,9 @@ logging.basicConfig(level=logging.INFO)
 
 DATABASE_URL = os.environ['DATABASE_URL']
 BOT_TOKEN = os.environ['BOT_TOKEN']
+BOT_STATE = os.environ['BOT_STATE']
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
+# Staging Bot COnnection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
 
 conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
@@ -35,8 +37,18 @@ def quote_selector(argument):
 
 @client.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
-
+    for i in client.servers:
+        print('We have logged in as {0.user}'.format(client))
+        if BOT_STATE == "PRODUCTION":
+            await client.change_nickname(i.me, "ReactionBot")
+            print("Setting Nicname to prouction one")
+        elif BOT_STATE == "STAGING":
+            await client.change_nickname(i.me, "ReactionBot_Staging")
+            print("Settimg Nicname to procuction one")
+        else:
+            logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
+            await client.change_nickname(i.me, "ReactionBot")
+        await client.change_presence(game=discord.Game(name='Type `rsp!help` to get started!'))
 
 @client.event
 async def on_message(message):
