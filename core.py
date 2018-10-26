@@ -119,6 +119,7 @@ async def on_message(message):
             conn.commit()
 
 
+
         ### Runs the help command
         if command_content.startswith('help'):
             command_content = re.sub(r"help ", "", command_content)  # Removes the command prefix `reply ` from the string
@@ -126,7 +127,8 @@ async def on_message(message):
             await client.send_message(message.channel, "**Command Root:** `rsp!` " + os.linesep +
                                       "**Commands:** " + os.linesep +
                                       "`rsp!reply search-term`- Searches the last 2000 messages for the search term then sends that in the channel of the invocation message.")
-
+        # Keeps the rsp!reply invocation commands from being logged
+        return
 
 
 
