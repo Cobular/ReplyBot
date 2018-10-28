@@ -117,6 +117,7 @@ async def on_message(message):
             print(output_message_id)
             await client.send_message(message.channel, output_message_username[0] + " `" + output_message_content[0] + "`")
             conn.commit()
+            return
 
 
 
@@ -128,7 +129,7 @@ async def on_message(message):
                                       "**Commands:** " + os.linesep +
                                       "`rsp!reply search-term`- Searches the last 2000 messages for the search term then sends that in the channel of the invocation message.")
         # Keeps the rsp!reply invocation commands from being logged
-        return
+            return
 
 
 
