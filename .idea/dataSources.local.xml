@@ -11,7 +11,7 @@
       <introspection-schemas>@:@</introspection-schemas>
     </data-source>
     <data-source name="HerokuSQL - Dev" uuid="6de96af7-92ec-4893-8984-e43b5638560c">
-      <database-info product="PostgreSQL" version="10.5 (Ubuntu 10.5-1.pgdg14.04+1)" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.2.2" family="POSTGRES" exact-version="10.5">
+      <database-info product="PostgreSQL" version="10.6 (Ubuntu 10.6-1.pgdg14.04+1)" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.2.2" family="POSTGRES" exact-version="10.6">
         <identifier-quote-string>&quot;</identifier-quote-string>
       </database-info>
       <case-sensitivity plain-identifiers="lower" quoted-identifiers="exact" />
