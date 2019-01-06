@@ -11,7 +11,7 @@ import time
 import typing
 
 
-bot_prefix = "rsp!"
+bot_prefix = "%"
 bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That command doesn't exist!!")
 logging.basicConfig(level=logging.INFO)
 
@@ -21,25 +21,25 @@ BOT_STATE = os.environ['BOT_STATE']
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
 # Staging Bot COnnection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
 
-conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+# conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
-client = discord.Client()
+# client = discord.Client()
 
 
-@client.event
-async def on_ready():
-    for i in client.servers:
-        print('We have logged in as {0.user}'.format(client))
-        if BOT_STATE == "PRODUCTION":
-            await client.change_nickname(i.me, "ReactionBot")
-            print("Setting Nicname to prouction one")
-        elif BOT_STATE == "STAGING":
-            await client.change_nickname(i.me, "ReactionBot_Staging")
-            print("Settimg Nicname to procuction one")
-        else:
-            logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
-            await client.change_nickname(i.me, "ReactionBot")
-        await client.change_presence(game=discord.Game(name='Type `rsp!help` to get started!'))
+# @client.event
+# async def on_ready():
+#     for i in client.servers:
+#         print('We have logged in as {0.user}'.format(client))
+#         if BOT_STATE == "PRODUCTION":
+#             await client.change_nickname(i.me, "ReactionBot")
+#             print("Setting Nicname to prouction one")
+#         elif BOT_STATE == "STAGING":
+#             await client.change_nickname(i.me, "ReactionBot_Staging")
+#             print("Settimg Nicname to procuction one")
+#         else:
+#             logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
+#             await client.change_nickname(i.me, "ReactionBot")
+#         await client.change_presence(game=discord.Game(name='Type `rsp!help` to get started!'))
 
 
 # @client.event
@@ -119,9 +119,9 @@ async def on_ready():
 
 
 @bot.command()
-async def reply_bot(ctx, channel: typing.Optional[discord.Channel], user: typing.Optional[discord.Member], *, search_terms: str):
+async def reply_bot(ctx, channel: typing.Optional[discord.Channel] = None, user: typing.Optional[discord.Member] = None, *, search_terms):
     await ctx.send(search_terms)
-    print(search_terms)
+    print(user)
 
 
-client.run(BOT_TOKEN)
+bot.run(BOT_TOKEN)
