@@ -119,9 +119,8 @@ BOT_STATE = os.environ['BOT_STATE']
 
 
 @bot.command()
-async def reply_bot(ctx, channel: typing.Optional[discord.Channel] = None, user: typing.Optional[discord.Member] = None, *, search_terms):
+async def reply_bot(ctx, search_terms, channel: typing.Optional[discord.Channel] = None, user: typing.Optional[discord.Member] = None):
     await ctx.send(search_terms)
-    print(user)
 
 
 bot.run(BOT_TOKEN)
