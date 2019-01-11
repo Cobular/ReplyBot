@@ -1,64 +1,28 @@
 import discord
-import random
+from discord.ext import commands
 import re
 import os
-import psycopg2
 import logging
-from discord.ext import commands
 import methods
-from threading import Thread
-import time
 import typing
+from models import Message, make_session
 
-
-bot_prefix = "%"
-bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That command doesn't exist!!")
+bot_prefix = "r!"
+long_help_formatter = commands.HelpFormatter(False, False, 100)
+bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That command doesn't exist!!",
+                   formatter=long_help_formatter)
 logging.basicConfig(level=logging.INFO)
 
 DATABASE_URL = os.environ['DATABASE_URL']
 BOT_TOKEN = os.environ['BOT_TOKEN']
 BOT_STATE = os.environ['BOT_STATE']
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
-# Staging Bot COnnection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
-
-# conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-
-# client = discord.Client()
-
-
-# @client.event
-# async def on_ready():
-#     for i in client.servers:
-#         print('We have logged in as {0.user}'.format(client))
-#         if BOT_STATE == "PRODUCTION":
-#             await client.change_nickname(i.me, "ReactionBot")
-#             print("Setting Nicname to prouction one")
-#         elif BOT_STATE == "STAGING":
-#             await client.change_nickname(i.me, "ReactionBot_Staging")
-#             print("Settimg Nicname to procuction one")
-#         else:
-#             logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
-#             await client.change_nickname(i.me, "ReactionBot")
-#         await client.change_presence(game=discord.Game(name='Type `rsp!help` to get started!'))
+# Staging Bot Connection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
 
 
 # @client.event
 # async def on_message(message):
 #     me = message.server.me
-#
-#     # <editor-fold desc="FlexBot Shit">
-#     if message.author == client.user:
-#         return
-#     if re.search('flex', message.content, re.IGNORECASE):
-#         await client.change_nickname(me, 'Phil Swift')  # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
-#         print('flexy message recived')  # Debuging Stuff
-#         current_message = await client.send_message(message.channel, methods.quote_selector(), tts=True)  # Actually send the message
-#         await client.delete_message(current_message)  # Quiclky delete the message so it is more sneaky
-#         await client.change_nickname(me, 'ReactionBot')  # Default Icon: https://i.imgur.com/NTHcYgR.jpg
-#
-#     if re.search('flex tape', message.content, re.IGNORECASE):
-#         await client.add_reaction(message, '™')
-#     # </editor-fold>
 #
 #     methods.clean_database(2000, conn)  # Cleans up the database to keep it at 2000 lines
 #
@@ -99,15 +63,6 @@ BOT_STATE = os.environ['BOT_STATE']
 #             conn.commit()
 #             return
 #
-#         # <editor-fold desc="Help Command">
-#         if command_content.startswith('help'):
-#             command_content = re.sub(r"help ", "", command_content)  # Removes the command prefix `reply ` from the string
-#             print("Print command processed. Raw message: " + command_content)
-#             await client.send_message(message.channel, "**Command Root:** `rsp!` " + os.linesep +
-#                                       "**Commands:** " + os.linesep +
-#                                       "`rsp!reply search-term`- Searches the last 2000 messages for the search term then sends that in the channel of the invocation message.")
-#             return
-#         # </editor-fold>
 #
 #     # Logging the messages to the database, moved to the bottom to avoid selecting the invocation message
 #     cur = conn.cursor()
@@ -118,9 +73,68 @@ BOT_STATE = os.environ['BOT_STATE']
 #     conn.commit()
 
 
+@bot.event
+async def on_ready():
+    for i in bot.guilds:
+        print('We have logged in as {0.user}'.format(bot))
+        if BOT_STATE == "PRODUCTION":
+            await i.me.edit(nick="ReactionBot")
+            print("Setting Nickname to production one")
+        elif BOT_STATE == "STAGING":
+            await i.me.edit(nick="ReactionBot_Staging")
+            print("Setting Nickname to production one")
+        else:
+            logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
+            await i.me.edit(nick="ReactionBot")
+        await bot.change_presence(activity=discord.Game(name='Type `' + bot_prefix + 'help` to get started!'))
+
+
 @bot.command()
-async def reply_bot(ctx, search_terms, channel: typing.Optional[discord.Channel] = None, user: typing.Optional[discord.Member] = None):
-    await ctx.send(search_terms)
+async def reply(ctx, channel: typing.Optional[discord.TextChannel], user: typing.Optional[discord.Member],
+                    *, search_terms):
+    """ Searches the past messages in a server for the text after the command.
+
+    channel: (Optional) The #channel_name for a text channel. Will only search in that channel.
+    user: (Optional) The @user_name for a user. Will only search for that user.
+    search_terms: (Required) The part of a message to search for.
+    """
+    print(search_terms + ":" + str(channel) + ":" + str(user))
+
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send('That command doesn\'t seem to exist! Please try again, and type `' + bot_prefix +
+                       'help` to view the help documentation.')
+
+
+@bot.event
+async def on_message(message):
+    global bot_prefix
+    me = message.guild.me
+    original_nick = me.nick
+    print(bot_prefix)
+
+    if message.author == bot.user:
+        return
+    if re.search("flex", message.content, re.IGNORECASE):
+        await me.edit(nick='Phil Swift')  # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
+        print('flexy message recived')  # Debuging Stuff
+        current_message = await message.channel.send(methods.quote_selector(), tts=True)  # Actually send the message
+        await current_message.delete()  # Quickly delete the message so it is more sneaky
+        await me.edit(nick=original_nick)  # Default Icon: https://i.imgur.com/NTHcYgR.jpg
+    if re.search("flex tape", message.content, re.IGNORECASE):
+        await message.add_reaction('™')
+
+    session = make_session()
+    current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
+                              message_channel=message.channel.id, message_server=message.guild.id)
+    session.add(current_message)
+    session.commit()
+    session.close()
+
+    # Insures the other commands are still processed
+    await bot.process_commands(message)
 
 
 bot.run(BOT_TOKEN)
