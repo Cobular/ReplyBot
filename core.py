@@ -119,10 +119,10 @@ async def invite(ctx):
     await ctx.send(new_invite)
 
 
-@bot.command()
+@bot.command(hidden=True)
 @commands.has_role('Mod')
 async def prefix(ctx, *, message: str):
-    """ Changes the prefix used to call the bot. Only usable mod role
+    """ Changes the prefix used to call the bot. Only usable mod role. Currently broken
 
     Default prefix is r!
     Literally requires a role with name 'Mod' to use
