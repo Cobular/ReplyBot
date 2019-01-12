@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-engine = create_engine('sqlite:///app.db', echo=True)
+engine = create_engine('sqlite:///app.db')
 
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)
