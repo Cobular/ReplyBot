@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands.cooldowns import BucketType
 import re
 import os
 import logging
@@ -11,66 +12,18 @@ bot_prefix = "r!"
 long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That command doesn't exist!!",
                    formatter=long_help_formatter)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig()
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 DATABASE_URL = os.environ['DATABASE_URL']
 BOT_TOKEN = os.environ['BOT_TOKEN']
 BOT_STATE = os.environ['BOT_STATE']
+
+
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
 # Staging Bot Connection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
 
-
-# @client.event
-# async def on_message(message):
-#     me = message.server.me
-#
 #     methods.clean_database(2000, conn)  # Cleans up the database to keep it at 2000 lines
-#
-#     # Checks for bot command starters and removes the bot part from the message content
-#     if message.clean_content.startswith(bot_prefix):
-#         command_content = re.sub(r"rsp!", "", message.clean_content)
-#
-#         # Runs the reply command. Lots of filtering, exlpained inline
-#         if command_content.startswith('reply'):
-#             command_content = re.sub(r"reply ", "", command_content)  # Removes the command prefix `reply ` from the string
-#             print("Reply command processed. Raw message: " + command_content)
-#             cur = conn.cursor()
-#             term = command_content.replace('=', '==').replace('%', '=%').replace('_', '=_')  # Redefines the characters that will cause issues (ones that need to be escaped) in other ways using the new escape character
-#             sql = """SELECT id FROM messages WHERE message_content ILIKE %(content)s ESCAPE '=' LIMIT 1;"""  # Defines the query, specifically redefined the sql escape character as `=`. This resolves issues with the `\` as the escape character conflicting at different levels down the chain.
-#             cur.execute(sql, dict(content='%' + term + '%'))  # Actually runs the command
-#             output_message_id = cur.fetchone()
-#             conn.commit()
-#
-#             # Check if there is no id found
-#             if output_message_id is None:
-#                 print("Search returned Nothing")
-#                 error_message = "The search returned nothing. Please try again with a less specific search or confirm that the search text matches the original"
-#                 await client.send_message(message.channel, error_message)
-#                 return
-#             else:
-#                 print(output_message_id[0])
-#
-#             # Does the responding to the message
-#             cur = conn.cursor()
-#             cur.execute("""SELECT username FROM messages WHERE id = %s;""", (output_message_id[0],))
-#             output_message_username = cur.fetchone()
-#             cur.execute("""SELECT message_content FROM messages WHERE id = %s;""", (output_message_id[0],))
-#             output_message_content = cur.fetchone()
-#             print(output_message_username)
-#             print(output_message_content)
-#             print(output_message_id)
-#             await client.send_message(message.channel, output_message_username[0] + " `" + output_message_content[0] + "`")
-#             conn.commit()
-#             return
-#
-#
-#     # Logging the messages to the database, moved to the bottom to avoid selecting the invocation message
-#     cur = conn.cursor()
-#     cur.execute("""INSERT INTO messages (username, message_content, server_id, channel_id, sending_user_id)
-#                 VALUES (%s, %s, %s, %s, %s);""",
-#                 (message.author.mention, message.clean_content, message.server.id, message.channel.id,
-#                  message.author.id))
-#     conn.commit()
 
 
 @bot.event
@@ -166,6 +119,19 @@ async def invite(ctx):
     await ctx.send(new_invite)
 
 
+@bot.command()
+@commands.has_role('Mod')
+async def prefix(ctx, *, message: str):
+    """ Changes the prefix used to call the bot. Only usable mod role
+
+    Default prefix is r!
+    Literally requires a role with name 'Mod' to use
+    """
+    global bot_prefix
+    bot_prefix = message
+    bot.command_prefix(bot_prefix)
+    await ctx.send("The bot prefix was changed to `" + bot_prefix + "`")
+    await bot.change_presence(activity=discord.Game(name='Type `' + bot_prefix + 'help` to get started!'))
 
 
 @bot.event
