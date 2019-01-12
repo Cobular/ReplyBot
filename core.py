@@ -90,15 +90,68 @@ async def on_ready():
 
 
 @bot.command()
-async def reply(ctx, channel: typing.Optional[discord.TextChannel], user: typing.Optional[discord.Member],
-                    *, search_terms):
+async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user: typing.Optional[discord.Member],
+                *, search_terms):
     """ Searches the past messages in a server for the text after the command.
 
     channel: (Optional) The #channel_name for a text channel. Will only search in that channel.
     user: (Optional) The @user_name for a user. Will only search for that user.
     search_terms: (Required) The part of a message to search for.
     """
-    print(search_terms + ":" + str(channel) + ":" + str(user))
+    session = make_session()
+    new_message = None
+
+    if channel is not None and target_user is not None:
+        new_message = session.query(Message
+                                    ).filter(Message.message_content.contains(search_terms),
+                                             Message.message_channel == channel.id,
+                                             Message.message_sender == target_user.id,
+                                             Message.message_server == ctx.guild.id
+                                             ).order_by(Message.message_sent_time.desc()).first()
+    elif channel is not None:
+        new_message = session.query(Message
+                                    ).filter(Message.message_content.contains(search_terms),
+                                             Message.message_channel == channel.id,
+                                             Message.message_server == ctx.guild.id
+                                             ).order_by(Message.message_sent_time.desc()).first()
+    elif target_user is not None:
+        new_message = session.query(Message
+                                    ).filter(Message.message_content.contains(search_terms),
+                                             Message.message_sender == target_user.id,
+                                             Message.message_server == ctx.guild.id
+                                             ).order_by(Message.message_sent_time.desc()).first()
+    else:
+        new_message = session.query(Message
+                                    ).filter(Message.message_content.contains(search_terms),
+                                             Message.message_server == ctx.guild.id
+                                             ).order_by(Message.message_sent_time.desc()).first()
+
+    # Catch the failure to find a message before other things are requested of new_message, avoiding null refrences
+    if not new_message:
+        await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
+                       "\nYou may also not be able to view the channel that the message was from.")
+        return
+
+        # Now tries to send the response
+    # Had issues getting the children of new_message, this reduced them
+    new_message_content = new_message.message_content
+    new_message_sender_id = new_message.message_sender
+    new_message_channel = new_message.message_channel
+
+    # Prints the response for debugging. TODO: Remove this debug print
+    print("<@" + str(new_message_sender_id) + "> >> `" + new_message_content + "`")
+
+    # Checks that the requester has the read_messages permission on the requested channel. If so, sends message. If not, returns error to the user
+    if ctx.message.author.permissions_in(bot.get_channel(new_message_channel)).read_messages:
+        await ctx.send("<@" + str(new_message_sender_id) + "> >> `" + new_message_content + "`")
+    else:
+        await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
+                       "\nYou may also not be able to view the channel that the message was from.")
+
+    # Keeps database connections clean
+    session.close()
+
+
 
 
 @bot.event
@@ -111,12 +164,14 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_message(message):
     global bot_prefix
+    skip_saving = False
     me = message.guild.me
     original_nick = me.nick
-    print(bot_prefix)
 
     if message.author == bot.user:
-        return
+        skip_saving = True
+    if bot_prefix in message.content:
+        skip_saving = True
     if re.search("flex", message.content, re.IGNORECASE):
         await me.edit(nick='Phil Swift')  # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
         print('flexy message recived')  # Debuging Stuff
@@ -126,12 +181,13 @@ async def on_message(message):
     if re.search("flex tape", message.content, re.IGNORECASE):
         await message.add_reaction('™')
 
-    session = make_session()
-    current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
-                              message_channel=message.channel.id, message_server=message.guild.id)
-    session.add(current_message)
-    session.commit()
-    session.close()
+    if not skip_saving:
+        session = make_session()
+        current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
+                                  message_channel=message.channel.id, message_server=message.guild.id)
+        session.add(current_message)
+        session.commit()
+        session.close()
 
     # Insures the other commands are still processed
     await bot.process_commands(message)
