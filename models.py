@@ -1,9 +1,11 @@
-from sqlalchemy import MetaData, Column, Integer, String, TIMESTAMP, create_engine
+from sqlalchemy import MetaData, Column, Integer, String, TIMESTAMP, create_engine, BIGINT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from datetime import datetime
+import os
 
-engine = create_engine('sqlite:///app.db')
+DATABASE_URL = os.environ['DATABASE_URL']
+engine = create_engine(DATABASE_URL)
 
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)
@@ -14,9 +16,9 @@ class Message(Base):
 
     id = Column(Integer, primary_key=True)
     message_content = Column(String(2000), index=True, nullable=False)
-    message_sender = Column(Integer, index=True, nullable=False)
-    message_channel = Column(Integer)
-    message_server = Column(Integer)
+    message_sender = Column(BIGINT, index=True, nullable=False)
+    message_channel = Column(BIGINT)
+    message_server = Column(BIGINT)
     message_sent_time = Column(TIMESTAMP, default=datetime.utcnow)
 
     def __repr__(self):
