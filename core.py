@@ -55,34 +55,63 @@ async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user:
     session = make_session()
     # Null Check is used to tell if a hit was found must be initialized here
     new_message = None
-    search_terms, response = user_input.split("〰", 1)
-    print(search_terms + "::" + response)
+    try:
+        search_terms, response = user_input.split("〰", 1)
+        print(search_terms + "::" + response)
+    except:
+        search_terms = user_input
+        response = None
+        print(search_terms + ":: nothing")
 
     if channel is not None and target_user is not None:
-        new_message = session.query(Message
-                                    # func.lower() insures that case isn't an issue
-                                    ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
-                                             Message.message_channel == channel.id,
-                                             Message.message_sender == target_user.id,
-                                             Message.message_server == ctx.guild.id
-                                             ).order_by(Message.message_sent_time.desc()).first()
+        if search_terms != "":
+            new_message = session.query(Message
+                                        # func.lower() insures that case isn't an issue
+                                        ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
+                                                 Message.message_channel == channel.id,
+                                                 Message.message_sender == target_user.id,
+                                                 Message.message_server == ctx.guild.id
+                                                 ).order_by(Message.message_sent_time.desc()).first()
+        else:
+            new_message = session.query(Message
+                                        ).filter(Message.message_channel == channel.id,
+                                                 Message.message_sender == target_user.id,
+                                                 Message.message_server == ctx.guild.id
+                                                 ).order_by(Message.message_sent_time.desc()).first()
     elif channel is not None:
-        new_message = session.query(Message
-                                    ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
-                                             Message.message_channel == channel.id,
-                                             Message.message_server == ctx.guild.id
-                                             ).order_by(Message.message_sent_time.desc()).first()
+        if search_terms != "":
+            new_message = session.query(Message
+                                        ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
+                                                 Message.message_channel == channel.id,
+                                                 Message.message_server == ctx.guild.id
+                                                 ).order_by(Message.message_sent_time.desc()).first()
+        else:
+            new_message = session.query(Message
+                                        ).filter(Message.message_channel == channel.id,
+                                                 Message.message_server == ctx.guild.id
+                                                 ).order_by(Message.message_sent_time.desc()).first()
     elif target_user is not None:
-        new_message = session.query(Message
-                                    ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
-                                             Message.message_sender == target_user.id,
-                                             Message.message_server == ctx.guild.id
-                                             ).order_by(Message.message_sent_time.desc()).first()
+        if search_terms != "":
+            new_message = session.query(Message
+                                        ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
+                                                 Message.message_sender == target_user.id,
+                                                 Message.message_server == ctx.guild.id
+                                                 ).order_by(Message.message_sent_time.desc()).first()
+        else:
+            new_message = session.query(Message
+                                        ).filter(Message.message_sender == target_user.id,
+                                                 Message.message_server == ctx.guild.id
+                                                 ).order_by(Message.message_sent_time.desc()).first()
     else:
-        new_message = session.query(Message
-                                    ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
-                                             Message.message_server == ctx.guild.id
-                                             ).order_by(Message.message_sent_time.desc()).first()
+        if search_terms != '':
+            new_message = session.query(Message
+                                        ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
+                                                 Message.message_server == ctx.guild.id
+                                                 ).order_by(Message.message_sent_time.desc()).first()
+        else:
+            new_message = session.query(Message
+                                        ).filter(Message.message_server == ctx.guild.id
+                                                 ).order_by(Message.message_sent_time.desc()).first()
 
     # Catch the failure to find a message before other things are requested of new_message, avoiding null refrences
     if not new_message:
@@ -96,16 +125,19 @@ async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user:
     new_message_sender_id = new_message.message_sender
     new_message_channel = new_message.message_channel
 
-    # Prints the response for debugging. TODO: Remove this debug print
-    print("<@" + str(new_message_sender_id) + "> >> `" + new_message_content + "`")
-
     # Checks that the requester has the read_messages permission on the requested channel.
     # If so, sends message. If not, returns error to the user
     if ctx.message.author.permissions_in(bot.get_channel(new_message_channel)).read_messages:
-        await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
-                       methods.clean_string_light(new_message_content) +
-                       "` \n" + "`" + response + "` *responds* " + ctx.message.author.mention)
+        print(methods.clean_string_light(new_message_content))
+        if response is not None:
+            await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
+                           methods.clean_string_light(new_message_content) + "` \n" +
+                           "`" + response + "` *responds* " + ctx.message.author.mention)
+        else:
+            await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
+                           methods.clean_string_light(new_message_content) + "`")
     else:
+        print("User had insuficent permissions to access that text")
         await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
                        "\nYou may also not be able to view the channel that the message was from.")
 
@@ -171,9 +203,10 @@ async def on_message(message):
 
     if not skip_saving:
         session = make_session()
-        current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
-                                  message_channel=message.channel.id, message_server=message.guild.id)
-        session.add(current_message)
+        if message.clean_content != '':
+            current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
+                                      message_channel=message.channel.id, message_server=message.guild.id)
+            session.add(current_message)
         session.commit()
         session.close()
 
