@@ -15,7 +15,6 @@ bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That comm
 logging.basicConfig()
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-DATABASE_URL = os.environ['DATABASE_URL']
 BOT_TOKEN = os.environ['BOT_TOKEN']
 BOT_STATE = os.environ['BOT_STATE']
 
