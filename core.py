@@ -7,6 +7,7 @@ import logging
 import methods
 import typing
 from models import Message, make_session
+from sqlalchemy import func
 
 bot_prefix = "r!"
 long_help_formatter = commands.HelpFormatter(False, False, 100)
@@ -43,38 +44,43 @@ async def on_ready():
 
 @bot.command()
 async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user: typing.Optional[discord.Member],
-                *, search_terms):
+                *, user_input):
     """ Searches the past messages in a server for the text after the command.
 
     channel: (Optional) The #channel_name for a text channel. Will only search in that channel.
     user: (Optional) The @user_name for a user. Will only search for that user.
     search_terms: (Required) The part of a message to search for.
     """
+    # Created the database session for this run
     session = make_session()
+    # Null Check is used to tell if a hit was found must be initialized here
     new_message = None
+    search_terms, response = user_input.split("〰", 1)
+    print(search_terms + "::" + response)
 
     if channel is not None and target_user is not None:
         new_message = session.query(Message
-                                    ).filter(Message.message_content.contains(search_terms),
+                                    # func.lower() insures that case isn't an issue
+                                    ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
                                              Message.message_channel == channel.id,
                                              Message.message_sender == target_user.id,
                                              Message.message_server == ctx.guild.id
                                              ).order_by(Message.message_sent_time.desc()).first()
     elif channel is not None:
         new_message = session.query(Message
-                                    ).filter(Message.message_content.contains(search_terms),
+                                    ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
                                              Message.message_channel == channel.id,
                                              Message.message_server == ctx.guild.id
                                              ).order_by(Message.message_sent_time.desc()).first()
     elif target_user is not None:
         new_message = session.query(Message
-                                    ).filter(Message.message_content.contains(search_terms),
+                                    ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
                                              Message.message_sender == target_user.id,
                                              Message.message_server == ctx.guild.id
                                              ).order_by(Message.message_sent_time.desc()).first()
     else:
         new_message = session.query(Message
-                                    ).filter(Message.message_content.contains(search_terms),
+                                    ).filter(func.lower(Message.message_content).contains(func.lower(search_terms)),
                                              Message.message_server == ctx.guild.id
                                              ).order_by(Message.message_sent_time.desc()).first()
 
@@ -93,9 +99,12 @@ async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user:
     # Prints the response for debugging. TODO: Remove this debug print
     print("<@" + str(new_message_sender_id) + "> >> `" + new_message_content + "`")
 
-    # Checks that the requester has the read_messages permission on the requested channel. If so, sends message. If not, returns error to the user
+    # Checks that the requester has the read_messages permission on the requested channel.
+    # If so, sends message. If not, returns error to the user
     if ctx.message.author.permissions_in(bot.get_channel(new_message_channel)).read_messages:
-        await ctx.send("<@" + str(new_message_sender_id) + "> >> `" + new_message_content + "`")
+        await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
+                       methods.clean_string_light(new_message_content) +
+                       "` \n" + "`" + response + "` *responds* " + ctx.message.author.mention)
     else:
         await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
                        "\nYou may also not be able to view the channel that the message was from.")
