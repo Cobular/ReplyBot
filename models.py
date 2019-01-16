@@ -30,10 +30,12 @@ class Message(Base):
     def prune_db(cls, num: int):
         session = make_session()
         count = 0
-        while session.query(Message).count() > num:
-            obj = session.query(Message).order_by(Message.message_sent_time.asc()).first()
-            session.delete(obj)
-            count += 1
+        servers = session.query(Message.message_server).distinct()
+        for server in servers:
+            while session.query(Message).filter(Message.message_server == server.message_server).count() > num:
+                obj = session.query(Message).order_by(Message.message_sent_time.asc()).first()
+                session.delete(obj)
+                count += 1
         session.commit()
         session.close()
         if count > 0:
