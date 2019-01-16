@@ -23,9 +23,6 @@ BOT_STATE = os.environ['BOT_STATE']
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
 # Staging Bot Connection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
 
-#     methods.clean_database(2000, conn)  # Cleans up the database to keep it at 2000 lines
-
-
 @bot.event
 async def on_ready():
     for i in bot.guilds:
@@ -209,6 +206,7 @@ async def on_message(message):
             session.add(current_message)
         session.commit()
         session.close()
+        Message.prune_db(2000)
 
     # Insures the other commands are still processed
     await bot.process_commands(message)
