@@ -36,3 +36,4 @@ def quote_selector():
         6: "That\'s a lot of damage!"}
     selector = random.randint(1, len(switch))  # Randomly select a choice
     return switch.get(selector, "Invalid Quote Choice")
+

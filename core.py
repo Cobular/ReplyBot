@@ -23,6 +23,7 @@ BOT_STATE = os.environ['BOT_STATE']
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
 # Staging Bot Connection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
 
+
 @bot.event
 async def on_ready():
     for i in bot.guilds:
@@ -37,6 +38,21 @@ async def on_ready():
             logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
             await i.me.edit(nick="ReactionBot")
         await bot.change_presence(activity=discord.Game(name='Type `' + bot_prefix + 'help` to get started!'))
+
+
+@bot.event
+async def on_guild_join(guild):
+    print('We have logged in as {0.user}'.format(bot))
+    if BOT_STATE == "PRODUCTION":
+        await guild.me.edit(nick="ReactionBot")
+        print("Setting Nickname to production one")
+    elif BOT_STATE == "STAGING":
+        await guild.me.edit(nick="ReactionBot_Staging")
+        print("Setting Nickname to production one")
+    else:
+        logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
+        await guild.me.edit(nick="ReactionBot")
+    await bot.change_presence(activity=discord.Game(name='Type `' + bot_prefix + 'help` to get started!'))
 
 
 @bot.command()
