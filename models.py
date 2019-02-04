@@ -1,6 +1,7 @@
 from sqlalchemy import MetaData, Column, Integer, String, TIMESTAMP, create_engine, BIGINT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import select
 from datetime import datetime
 import os
 import logging
@@ -27,19 +28,35 @@ class Message(Base):
         return self.message_content
 
     @classmethod
-    def prune_db(cls, num: int):
+    def prune_db(cls, num_to_get_to: int):
         session = make_session()
         count = 0
         servers = session.query(Message.message_server).distinct()
         for server in servers:
-            while session.query(Message).filter(Message.message_server == server.message_server).count() > num:
-                obj = session.query(Message).order_by(Message.message_sent_time.asc()).first()
-                session.delete(obj)
-                count += 1
+            total_num = session.query(Message).filter(Message.message_server == server.message_server).count()
+            num_to_delete = total_num - num_to_get_to
+            if num_to_delete > 0:
+                ids_to_keep = session.query(Message.id).order_by(Message.message_sent_time.asc()).limit(num_to_delete).subquery()
+                session.query(Message).filter(Message.id.in_(ids_to_keep)).delete(synchronize_session='fetch')
+                count += num_to_delete
+            # for i in ids_to_keep:
+            #     session.query(Message).filter(Message.id != i[0]).delete()
+            #     count += 1
+            #     print(count)
+
+            #
+            # print(total_num)
+            # num_to_delete = total_num - num_to_get_to
+            # print(num_to_delete)
+            # if num_to_delete > 0:
+            #     objs = session.query(Message.id).order_by().limit(num_to_delete).subquery()
+            #     session.query(Message).filter(Message.id.in_(objs)).delete()
+
         session.commit()
         session.close()
+        print("done")
         if count > 0:
-            logging.log("INFO", str(count) + " messages deleted")
+            logging.log(20, str(count) + " messages deleted")
 
 
 def create_db():
