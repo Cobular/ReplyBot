@@ -211,5 +211,4 @@ async def on_message(message):
     # Insures the other commands are still processed
     await bot.process_commands(message)
 
-
 bot.run(BOT_TOKEN)
