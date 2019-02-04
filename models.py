@@ -3,6 +3,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from datetime import datetime
 import os
+import logging
+
 
 DATABASE_URL = os.environ['DATABASE_URL']
 engine = create_engine(DATABASE_URL)
@@ -23,6 +25,21 @@ class Message(Base):
 
     def __repr__(self):
         return self.message_content
+
+    @classmethod
+    def prune_db(cls, num: int):
+        session = make_session()
+        count = 0
+        servers = session.query(Message.message_server).distinct()
+        for server in servers:
+            while session.query(Message).filter(Message.message_server == server.message_server).count() > num:
+                obj = session.query(Message).order_by(Message.message_sent_time.asc()).first()
+                session.delete(obj)
+                count += 1
+        session.commit()
+        session.close()
+        if count > 0:
+            logging.log("INFO", str(count) + " messages deleted")
 
 
 def create_db():
