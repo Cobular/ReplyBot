@@ -39,18 +39,6 @@ class Message(Base):
                 ids_to_keep = session.query(Message.id).order_by(Message.message_sent_time.asc()).limit(num_to_delete).subquery()
                 session.query(Message).filter(Message.id.in_(ids_to_keep)).delete(synchronize_session='fetch')
                 count += num_to_delete
-            # for i in ids_to_keep:
-            #     session.query(Message).filter(Message.id != i[0]).delete()
-            #     count += 1
-            #     print(count)
-
-            #
-            # print(total_num)
-            # num_to_delete = total_num - num_to_get_to
-            # print(num_to_delete)
-            # if num_to_delete > 0:
-            #     objs = session.query(Message.id).order_by().limit(num_to_delete).subquery()
-            #     session.query(Message).filter(Message.id.in_(objs)).delete()
 
         session.commit()
         session.close()
