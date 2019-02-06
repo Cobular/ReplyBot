@@ -2,6 +2,8 @@ import re
 import random
 from discord.ext.commands import context
 from discord import Forbidden
+import discord
+import json
 
 
 def clean_string(string_to_clean):
@@ -47,3 +49,19 @@ async def delete_invocation(ctx: context):
         ctx.send(
             "I don't have the permissions to delete the invocation message. I need the `Manage Messages` permission!")
 
+
+with open("prefixes.json") as f:
+    prefixes = json.load(f)
+default_prefix = "r!"
+
+
+def get_prefix_for_init(bot, message):
+    return prefixes.get(str(message.guild.id), default_prefix)
+
+
+def get_prefix(server_id):
+    return prefixes.get(str(server_id), default_prefix)
+
+
+async def update_prefix(bot, id):
+    await bot.change_presence(activity=discord.Game(name='Type `' + get_prefix(id) + 'help` to get started!'))
