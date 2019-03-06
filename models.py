@@ -1,4 +1,4 @@
-from sqlalchemy import MetaData, Column, Integer, String, TIMESTAMP, create_engine, BIGINT
+from sqlalchemy import Column, Integer, String, TIMESTAMP, create_engine, BIGINT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
@@ -8,21 +8,20 @@ import logging
 
 
 DATABASE_URL = os.environ['DATABASE_URL']
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, echo=False)
 
-metadata = MetaData()
-Base = declarative_base(metadata=metadata)
+Base = declarative_base()
 
 
 class Message(Base):
-    __tablename__ = "Messages"
+    __tablename__ = "messages"
 
-    id = Column(Integer, primary_key=True)
-    message_content = Column(String(2000), index=True, nullable=False)
-    message_sender = Column(BIGINT, index=True, nullable=False)
-    message_channel = Column(BIGINT)
-    message_server = Column(BIGINT)
-    message_sent_time = Column(TIMESTAMP, default=datetime.utcnow)
+    id = Column("id", Integer, primary_key=True)
+    message_content = Column("message_content", String(2000), index=True, nullable=False)
+    message_sender = Column("message_sender", BIGINT, index=True, nullable=False)
+    message_channel = Column("message_channel", BIGINT)
+    message_server = Column("message_server", BIGINT)
+    message_sent_time = Column("message_sent_time", TIMESTAMP, default=datetime.utcnow)
 
     def __repr__(self):
         return self.message_content
