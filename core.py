@@ -9,11 +9,10 @@ import typing
 from models import Message, make_session
 from sqlalchemy import func
 
-bot_prefix = "r!"
 long_help_formatter = commands.HelpFormatter(False, False, 100)
-bot = commands.Bot(command_prefix=bot_prefix, command_not_found="Heck! That command doesn't exist!!",
-                   formatter=long_help_formatter)
-logging.basicConfig()
+bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
+                   formatter=long_help_formatter, description="Thanks for using ReplyBot, Replying for Gamers!")
+logging.basicConfig(level=logging.INFO)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 BOT_TOKEN = os.environ['BOT_TOKEN']
@@ -23,33 +22,58 @@ BOT_STATE = os.environ['BOT_STATE']
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
 # Staging Bot Connection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
 
-#     methods.clean_database(2000, conn)  # Cleans up the database to keep it at 2000 lines
-
 
 @bot.event
 async def on_ready():
     for i in bot.guilds:
         print('We have logged in as {0.user}'.format(bot))
         if BOT_STATE == "PRODUCTION":
-            await i.me.edit(nick="ReactionBot")
-            print("Setting Nickname to production one")
+            print("Loaded as Production")
         elif BOT_STATE == "STAGING":
             await i.me.edit(nick="ReactionBot_Staging")
-            print("Setting Nickname to production one")
+            print("Setting Nickname to staging one")
         else:
-            logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
-            await i.me.edit(nick="ReactionBot")
-        await bot.change_presence(activity=discord.Game(name='Type `' + bot_prefix + 'help` to get started!'))
+            logging.error("Couldn't Find BOT_STATE!! Defaulting to whatever I was named before: " + i.me.nick)
+        await bot.change_presence(activity=discord.Game(name='Type r!help to get started!'))
 
 
-@bot.command()
+@bot.event
+async def on_guild_join(guild):
+    print('We have logged in as {0.user}'.format(bot))
+    if BOT_STATE == "PRODUCTION":
+        await guild.me.edit(nick="ReactionBot")
+        print("Setting Nickname to production one")
+    elif BOT_STATE == "STAGING":
+        await guild.me.edit(nick="ReactionBot_Staging")
+        print("Setting Nickname to staging one")
+        print(methods.get_prefix(guild.id))
+        print(guild.id)
+    else:
+        logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
+        await guild.me.edit(nick="ReactionBot")
+    await bot.change_presence(activity=discord.Game(name='Type `' +
+                                                         methods.get_prefix(guild.id) + 'help` to get started!'))
+
+
+@bot.event
+async def on_message_delete(received_message):
+    session = make_session()
+    delete_code = session.query(Message).filter(Message.message_id == received_message.id).delete()
+    session.commit()
+    session.close()
+
+
+@bot.command(usage="[<channel> <target_user>] <search term> [〰 <response>]")
 async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user: typing.Optional[discord.Member],
                 *, user_input):
     """ Searches the past messages in a server for the text after the command.
 
+    Place a 〰 (:wavy-dash:) between your search string and your response to activate the response functionality.
+
     channel: (Optional) The #channel_name for a text channel. Will only search in that channel.
     user: (Optional) The @user_name for a user. Will only search for that user.
-    search_terms: (Required) The part of a message to search for.
+    search term: (Required) The part of a message to search for.
+    response: (Optional) Your response to append to the end of the message. Make sure to add the 〰 to deliniate.
     """
     # Created the database session for this run
     session = make_session()
@@ -130,9 +154,14 @@ async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user:
     if ctx.message.author.permissions_in(bot.get_channel(new_message_channel)).read_messages:
         print(methods.clean_string_light(new_message_content))
         if response is not None:
-            await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
-                           methods.clean_string_light(new_message_content) + "` \n" +
-                           "`" + response + "` *responds* " + ctx.message.author.mention)
+            if channel is not None and channel.id != new_message_channel:
+                await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
+                               methods.clean_string_light(new_message_content) + "` in" + channel.mention + "\n" +
+                               "`" + response + "` *responds* " + ctx.message.author.mention)
+            else:
+                await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
+                               methods.clean_string_light(new_message_content) + "` \n" +
+                               "`" + response + "` *responds* " + ctx.message.author.mention)
         else:
             await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
                            methods.clean_string_light(new_message_content) + "`")
@@ -143,25 +172,23 @@ async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user:
 
     # Keeps database connections clean
     session.close()
+    await methods.delete_invocation(ctx)
 
 
 @bot.command()
 @commands.cooldown(1, 60, BucketType.user)
 async def invite(ctx):
-    """ Creates an invite to the server
+    """ Displays the link to invite the bot to a server.
 
-    Can be used once per 60 seconds per user
-    Lasts for 2 minutes and will allow 4 people to join (enough to add everyone else in your party)
-    Your username will be logged on creation, please don'r abuse this
     """
-    new_invite = await ctx.message.channel.create_invite(max_age=120, max_uses=4, temporary=True, unique=False,
-                                                         reason="Auto-generated by the bot for user: " + ctx.message.author.nick)
-    await ctx.send(new_invite)
+    await ctx.send("Here, have an invite! Click this to add ReplyBot to ypur server! \n"
+                   "https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576")
+    await methods.delete_invocation(ctx)
 
 
-@bot.command(hidden=True)
+@bot.command(hidden=True, name="prefix")
 @commands.has_role('Mod')
-async def prefix(ctx, *, message: str):
+async def change_prefix(ctx, *, message: str):
     """ Changes the prefix used to call the bot. Only usable mod role. Currently broken
 
     Default prefix is r!
@@ -190,7 +217,7 @@ async def on_message(message):
 
     if message.author == bot.user:
         skip_saving = True
-    if bot_prefix in message.content:
+    if methods.get_prefix(message.guild.id) in message.content:
         skip_saving = True
     if re.search("flex", message.content, re.IGNORECASE):
         await me.edit(nick='Phil Swift')  # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
@@ -205,13 +232,14 @@ async def on_message(message):
         session = make_session()
         if message.clean_content != '':
             current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
-                                      message_channel=message.channel.id, message_server=message.guild.id)
+                                      message_channel=message.channel.id, message_server=message.guild.id,
+                                      message_id=message.id)
             session.add(current_message)
         session.commit()
         session.close()
+        Message.prune_db(2000)
 
     # Insures the other commands are still processed
     await bot.process_commands(message)
-
 
 bot.run(BOT_TOKEN)
