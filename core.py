@@ -10,7 +10,7 @@ from models import Message, make_session
 from sqlalchemy import func
 
 long_help_formatter = commands.HelpFormatter(False, False, 100)
-bot = commands.Bot(command_prefix=methods.get_prefix_for_init, command_not_found="Heck! That command doesn't exist!!",
+bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
                    formatter=long_help_formatter, description="Thanks for using ReplyBot, Replying for Gamers!")
 logging.basicConfig(level=logging.INFO)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -37,7 +37,7 @@ async def on_ready():
             print(i.id)
         else:
             logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
-            await i.me.edit(nick="ReactionBot")
+        await bot.change_presence(activity=discord.Game(name='Type r!help to get started!'))
         await bot.change_presence(activity=discord.Game(name='Type `' +
                                                              methods.get_prefix(i.id) + 'help` to get started!'))
 
