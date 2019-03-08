@@ -55,6 +55,14 @@ async def on_guild_join(guild):
                                                          methods.get_prefix(guild.id) + 'help` to get started!'))
 
 
+@bot.event
+async def on_message_delete(received_message):
+    session = make_session()
+    delete_code = session.query(Message).filter(Message.message_id == received_message.id).delete()
+    session.commit()
+    session.close()
+
+
 @bot.command(usage="[<channel> <target_user>] <search term> [〰 <response>]")
 async def reply(ctx, channel: typing.Optional[discord.TextChannel], target_user: typing.Optional[discord.Member],
                 *, user_input):
@@ -224,7 +232,8 @@ async def on_message(message):
         session = make_session()
         if message.clean_content != '':
             current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
-                                      message_channel=message.channel.id, message_server=message.guild.id)
+                                      message_channel=message.channel.id, message_server=message.guild.id,
+                                      message_id=message.id)
             session.add(current_message)
         session.commit()
         session.close()
