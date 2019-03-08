@@ -28,18 +28,13 @@ async def on_ready():
     for i in bot.guilds:
         print('We have logged in as {0.user}'.format(bot))
         if BOT_STATE == "PRODUCTION":
-            await i.me.edit(nick="ReactionBot")
-            print("Setting Nickname to production one")
+            print("Loaded as Production")
         elif BOT_STATE == "STAGING":
             await i.me.edit(nick="ReactionBot_Staging")
             print("Setting Nickname to staging one")
-            print(methods.get_prefix(i.id))
-            print(i.id)
         else:
-            logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
+            logging.error("Couldn't Find BOT_STATE!! Defaulting to whatever I was named before: " + i.me.nick)
         await bot.change_presence(activity=discord.Game(name='Type r!help to get started!'))
-        await bot.change_presence(activity=discord.Game(name='Type `' +
-                                                             methods.get_prefix(i.id) + 'help` to get started!'))
 
 
 @bot.event
