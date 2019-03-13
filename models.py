@@ -46,7 +46,6 @@ class Message(Base):
             logging.log(20, str(count) + " messages deleted")
 
 
-
 def create_db():
     Base.metadata.create_all(engine)
 
