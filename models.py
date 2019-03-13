@@ -18,6 +18,7 @@ class Message(Base):
 
     id = Column("id", Integer, primary_key=True)
     message_content = Column("message_content", String(2000), index=True, nullable=False)
+    message_id = Column('message_id', BIGINT, nullable=False)
     message_sender = Column("message_sender", BIGINT, index=True, nullable=False)
     message_channel = Column("message_channel", BIGINT)
     message_server = Column("message_server", BIGINT)
