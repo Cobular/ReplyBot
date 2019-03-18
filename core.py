@@ -14,12 +14,9 @@ cogs/
 """
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
-import re
 import os
 import logging
-from tools import methods
-from models import Message, make_session
+
 
 long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
@@ -42,10 +39,11 @@ initial_extensions = ['cogs.reply',
 # Here we load our extensions(cogs) listed above in [initial_extensions].
 if __name__ == '__main__':
     for extension in initial_extensions:
-        # try:
-        bot.load_extension(extension)
-        # except Exception as e:
-            # print(f'Failed to load extension {extension}.')
+        # noinspection PyBroadException
+        try:
+            bot.load_extension(extension)
+        except Exception as e:
+            print(f'Failed to load extension {extension}.')
 
 
 @bot.event
@@ -66,18 +64,15 @@ async def on_ready():
 async def on_guild_join(guild):
     print('We have logged in as {0.user}'.format(bot))
     if BOT_STATE == "PRODUCTION":
-        await guild.me.edit(nick="ReactionBot")
-        print("Setting Nickname to production one")
+        # TODO: Do a smarter check to see if nickname has been changed
+        print("Production, not changing nickname")
     elif BOT_STATE == "STAGING":
-        await guild.me.edit(nick="ReactionBot_Staging")
+        await guild.me.edit(nick="ReplyBot_Staging")
         print("Setting Nickname to staging one")
-        print(methods.get_prefix(guild.id))
-        print(guild.id)
     else:
-        logging.error("Couldn't Find BOT_STATE!! Defaulting to ReactionBot")
-        await guild.me.edit(nick="ReactionBot")
-    await bot.change_presence(activity=discord.Game(name='Type `' +
-                                                         methods.get_prefix(guild.id) + 'help` to get started!'))
+        logging.error("Couldn't Find BOT_STATE!! Defaulting to ReplyBot")
+        await guild.me.edit(nick="ReplyBot")
+    await bot.change_presence(activity=discord.Game(name='Type r!help to get started!'))
 
 
 @bot.event
