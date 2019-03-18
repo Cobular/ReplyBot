@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+
+"""A Discord bot made with Discord.py that allows users to use a telegram-esque replying system in Discord
+
+This file contains all the code that sets up the bot and runs the cogs, as well as a few assorted function calls that
+have not yet been moved out.
+
+tools/
+  methods.py contains various utilities and tools used throughout the project
+cogs/
+  reply.py is the main code of the bot, it handles the saving of messages as well as the search and response to requests
+  admin.py contains commands for bot administration and control. Many items there will not show up in help.
+  random.py has other random crap I wrote, bot invite requests and other stuff
+"""
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
@@ -15,7 +29,6 @@ logging.basicConfig(level=logging.INFO)
 
 BOT_TOKEN = os.environ['BOT_TOKEN']
 BOT_STATE = os.environ['BOT_STATE']
-
 
 # Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
 # Staging Bot Connection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576

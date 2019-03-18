@@ -1,3 +1,5 @@
+"""Just random fun stuff. Nothing essential to the bot will be put here"""
+
 import discord
 from discord.ext import commands
 from discord.ext.commands import BucketType

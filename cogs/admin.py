@@ -1,3 +1,5 @@
+"""Contains bot administration related commands. Currently is cog loading and a depreciated prefix changer"""
+
 import discord
 from discord.ext import commands
 
