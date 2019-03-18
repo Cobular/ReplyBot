@@ -76,34 +76,7 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_message(message):
-    skip_saving = False
-    me = message.guild.me
-    original_nick = me.nick
-
-    if message.author == bot.user:
-        skip_saving = True
-    if methods.get_prefix(message.guild.id) in message.content:
-        skip_saving = True
-    if re.search("flex", message.content, re.IGNORECASE):
-        await me.edit(nick='Phil Swift')  # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
-        print('flexy message recived')  # Debuging Stuff
-        current_message = await message.channel.send(methods.quote_selector(), tts=True)  # Actually send the message
-        await current_message.delete()  # Quickly delete the message so it is more sneaky
-        await me.edit(nick=original_nick)  # Default Icon: https://i.imgur.com/NTHcYgR.jpg
-    if re.search("flex tape", message.content, re.IGNORECASE):
-        await message.add_reaction('™')
-
-    if not skip_saving:
-        session = make_session()
-        if message.clean_content != '':
-            current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
-                                      message_channel=message.channel.id, message_server=message.guild.id,
-                                      message_id=message.id)
-            session.add(current_message)
-        session.commit()
-        session.close()
-        Message.prune_db(2000)
-
+    # This is just here to exist in case I need it later. Should be moved out soon
     # Insures the other commands are still processed
     await bot.process_commands(message)
 
