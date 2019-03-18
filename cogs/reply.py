@@ -6,10 +6,11 @@ Also is responsible for saving messages sent to the bot
 import discord
 from discord.ext import commands
 from sqlalchemy import func
+import typing
+from datetime import datetime
+
 from models import Message, make_session
 from tools import methods
-import typing
-import datetime
 
 
 class ReplyCog(commands.Cog, name="Reply Commands"):
@@ -51,7 +52,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                     Message.message_channel == channel.id,
                     Message.message_sender == target_user.id,
                     Message.message_server == ctx.guild.id
-                    ).order_by(Message.message_sent_time.desc()).first()
+                ).order_by(Message.message_sent_time.desc()).first()
             else:
                 new_message = session.query(Message
                                             ).filter(Message.message_channel == channel.id,
@@ -65,7 +66,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                     func.lower(Message.message_content).contains(func.lower(search_terms)),
                     Message.message_channel == channel.id,
                     Message.message_server == ctx.guild.id
-                    ).order_by(Message.message_sent_time.desc()).first()
+                ).order_by(Message.message_sent_time.desc()).first()
             else:
                 new_message = session.query(Message
                                             ).filter(Message.message_channel == channel.id,
@@ -78,7 +79,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                     func.lower(Message.message_content).contains(func.lower(search_terms)),
                     Message.message_sender == target_user.id,
                     Message.message_server == ctx.guild.id
-                    ).order_by(Message.message_sent_time.desc()).first()
+                ).order_by(Message.message_sent_time.desc()).first()
             else:
                 new_message = session.query(Message
                                             ).filter(Message.message_sender == target_user.id,
@@ -90,7 +91,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                                             ).filter(
                     func.lower(Message.message_content).contains(func.lower(search_terms)),
                     Message.message_server == ctx.guild.id
-                    ).order_by(Message.message_sent_time.desc()).first()
+                ).order_by(Message.message_sent_time.desc()).first()
             else:
                 new_message = session.query(Message
                                             ).filter(Message.message_server == ctx.guild.id
@@ -108,6 +109,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         new_message_sender_id = new_message.message_sender
         new_message_channel = new_message.message_channel
         new_message_sent_time = new_message.message_sent_time
+        new_message_id = new_message.message_id
 
         # Checks that the requester has the read_messages permission on the requested channel.
         # If so, sends message. If not, returns error to the user
@@ -115,15 +117,23 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             print(methods.clean_string_light(new_message_content))
             if response is not None:  # Check to see if the message has an attached response
                 if channel is not None and channel.id != new_message_channel:  # Print with channel name included if pulled from another channel
-                    await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
-                                   methods.clean_string_light(new_message_content) + "` in" + channel.mention + "\n" +
-                                   "`" + response + "` *responds* " + ctx.message.author.mention)
+                    await self.send_original_message(ctx, new_message_content, new_message_sender_id,
+                                                     new_message_sent_time, new_message_id)
+                    await ctx.send("To which " + ctx.message.author.mention + " says:")
+                    await self.send_original_message_no_channel(ctx, response, ctx.message.author.id,
+                                                                datetime.utcnow(), ctx.message.id)
                 else:  # Print normally with a response
-                    await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
-                                   methods.clean_string_light(new_message_content) + "` \n" +
-                                   "`" + response + "` *responds* " + ctx.message.author.mention)
+                    await self.send_original_message_no_channel(ctx, new_message_content, new_message_sender_id,
+                                                                new_message_sent_time, new_message_id)
+                    await ctx.send("To which " + ctx.message.author.mention + " says:")
+                    await self.send_original_message_no_channel(ctx, response, ctx.message.author.id,
+                                                                datetime.utcnow(), ctx.message.id)
+                    # await ctx.send("<@" + str(new_message_sender_id) + "> *said* `" +
+                    #                methods.clean_string_light(new_message_content) + "` \n" +
+                    #                "`" + response + "` *responds* " + ctx.message.author.mention)
             else:
-                await self.send_original_message(ctx, new_message_content, new_message_sender_id, new_message_sent_time)
+                await self.send_original_message_no_channel(ctx, new_message_content, new_message_sender_id,
+                                                            new_message_sent_time, new_message_id)
         else:
             print("User had insufficient permissions to access that text")
             await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
@@ -153,15 +163,34 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             session.close()
             Message.prune_db(2000)
 
-    async def send_original_message(self, ctx, message_content, message_sender, message_sent_time):
+    async def send_original_message(self, ctx, message_content, message_sender, message_sent_time,
+                                    message_id):
         sender = ctx.guild.get_member(message_sender)
-        embed = discord.Embed(colour=sender.color,
-                              description=message_content,
+        message = await self.get_message(ctx, message_id)
+        embed = discord.Embed(colour=sender.color, description="**" + message_content + "**",
                               timestamp=message_sent_time)
-        embed.set_author(name=sender.display_name, icon_url=sender.avatar_url)
-        embed.set_footer(text="ReplyBot", icon_url=self.bot.user.avatar_url)
+        embed.set_author(name=sender.display_name, icon_url=sender.avatar_url,
+                         url=message.jump_url)
+        embed.add_field(name="‍ ", value="*Sent in: " + message.channel.mention + "*")
+        # embed.set_footer(text="ReplyBot", icon_url=self.bot.user.avatar_url)
 
         await ctx.send(embed=embed)
+
+    async def send_original_message_no_channel(self, ctx, message_content, message_sender, message_sent_time,
+                                               message_id):
+        sender = ctx.guild.get_member(message_sender)
+        message = await self.get_message(ctx, message_id)
+        embed = discord.Embed(colour=sender.color, description="**" + message_content + "**",
+                              timestamp=message_sent_time)
+        embed.set_author(name=sender.display_name, icon_url=sender.avatar_url,
+                         url=message.jump_url)
+        # embed.set_footer(text="ReplyBot", icon_url=self.bot.user.avatar_url)
+
+        await ctx.send(embed=embed)
+
+    async def get_message(self, ctx, message_id: int):
+        message = await ctx.get_message(message_id)
+        return message
 
 
 def setup(bot):

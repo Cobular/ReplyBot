@@ -21,17 +21,18 @@ import logging
 long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
                    formatter=long_help_formatter, description="Thanks for using ReplyBot, Replying for Gamers!")
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARN)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 BOT_TOKEN = os.environ['BOT_TOKEN']
 BOT_STATE = os.environ['BOT_STATE']
 
-# Bot connection URL: https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
-# Staging Bot Connection URL: https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
+# Bot connection URL:
+#   https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
+# Staging Bot Connection URL:
+#   https://discordapp.com/oauth2/authorize?client_id=499998765273448478&scope=bot&permissions=201620576
 
 # Below cogs represents our folder our cogs are in. Following is the file name. So 'meme.py' in cogs, would be cogs.meme
-# Think of it like a dot path import
 initial_extensions = ['cogs.reply',
                       'cogs.random',
                       'cogs.admin']
@@ -43,36 +44,47 @@ if __name__ == '__main__':
         try:
             bot.load_extension(extension)
         except Exception as e:
-            print(f'Failed to load extension {extension}.')
+            logging.error(f'Failed to load extension {extension}.')
 
 
 @bot.event
 async def on_ready():
+    """Sets up the bot's nicknames and the game it is streaming"""
+
+    # Checks the login state
+    if BOT_STATE == "PRODUCTION":
+        logging.info("Loaded as Production")
+    elif BOT_STATE == "STAGING":
+        logging.info("Loaded as Staging Changing nickname...")
+        await bot.user.edit(nick="ReplyBot_Staging")
+    else:
+        logging.error("Couldn't Find BOT_STATE!! Defaulting to staging")
+
+    # Sets up the bot's "game"
+    await bot.change_presence(activity=discord.Game(
+        name='Type r!help to get started.'))
+
+    # Counts servers the bot is on
+    counter = 0
     for i in bot.guilds:
+        counter += 1
         print('We have logged in as {0.user}'.format(bot))
-        if BOT_STATE == "PRODUCTION":
-            print("Loaded as Production")
-        elif BOT_STATE == "STAGING":
-            await i.me.edit(nick="ReactionBot_Staging")
-            print("Setting Nickname to staging one")
-        else:
-            logging.error("Couldn't Find BOT_STATE!! Defaulting to whatever I was named before: " + i.me.nick)
-        await bot.change_presence(activity=discord.Game(name='Type r!help to get started!'))
+    logging.info("We are in {0} server!".format(counter))
 
 
 @bot.event
 async def on_guild_join(guild):
-    print('We have logged in as {0.user}'.format(bot))
+    """Sets up everything when the bot joins a new server"""
+    logging.info('We have been added to a new server  {0.name}'.format(guild))
+
+    # Sends a message on join, will change nickname on staging and give an error elsewhere
     if BOT_STATE == "PRODUCTION":
-        # TODO: Do a smarter check to see if nickname has been changed
-        print("Production, not changing nickname")
+        logging.info("Loaded mid-run as Production")
     elif BOT_STATE == "STAGING":
+        logging.info("Loaded mid-run as Staging. Changing nickname...")
         await guild.me.edit(nick="ReplyBot_Staging")
-        print("Setting Nickname to staging one")
     else:
-        logging.error("Couldn't Find BOT_STATE!! Defaulting to ReplyBot")
-        await guild.me.edit(nick="ReplyBot")
-    await bot.change_presence(activity=discord.Game(name='Type r!help to get started!'))
+        logging.error("Loaded mid-run but couldn't Find BOT_STATE!! Defaulting to staging")
 
 
 @bot.event
