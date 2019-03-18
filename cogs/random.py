@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import BucketType
 from tools import methods
+import re
 
 
 class RandomCog(commands.Cog, name="Random Commands"):
@@ -22,6 +23,23 @@ class RandomCog(commands.Cog, name="Random Commands"):
         await ctx.send("Here, have an invite! Click this to add ReplyBot to your server! \n"
                        "https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576")
         await methods.delete_invocation(ctx)
+
+    # Responsible for the flex-tape easter egg.
+    # TODO: Add a toggle command to enable or disable the egg
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        me = message.guild.me
+        original_nick = me.nick
+
+        if re.search("flex", message.content, re.IGNORECASE):
+            await me.edit(nick='Phil Swift')  # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
+            print('flexy message recived')  # Debuging Stuff
+            current_message = await message.channel.send(methods.quote_selector(),
+                                                         tts=True)  # Actually send the message
+            await current_message.delete()  # Quickly delete the message so it is more sneaky
+            await me.edit(nick=original_nick)  # Default Icon: https://i.imgur.com/NTHcYgR.jpg
+        if re.search("flex tape", message.content, re.IGNORECASE):
+            await message.add_reaction('™')
 
 
 def setup(bot):
