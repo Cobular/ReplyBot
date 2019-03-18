@@ -18,9 +18,9 @@ import os
 import logging
 
 
-long_help_formatter = commands.HelpFormatter(False, False, 100)
+# long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
-                   formatter=long_help_formatter, description="Thanks for using ReplyBot, Replying for Gamers!")
+                   description="Thanks for using ReplyBot, Replying for Gamers!")
 logging.basicConfig(level=logging.WARN)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
