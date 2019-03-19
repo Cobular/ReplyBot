@@ -1,5 +1,14 @@
+"""Contains assorted methods used throughout the program.
+
+See individual docstrings for more info
+"""
+
 import re
 import random
+from discord.ext.commands import context
+from discord import Forbidden
+import discord
+import json
 
 
 def clean_string(string_to_clean):
@@ -36,3 +45,11 @@ def quote_selector():
         6: "That\'s a lot of damage!"}
     selector = random.randint(1, len(switch))  # Randomly select a choice
     return switch.get(selector, "Invalid Quote Choice")
+
+
+async def delete_invocation(ctx: context):
+    try:
+        ctx.message.detete()
+    except Forbidden:
+        ctx.send(
+            "I don't have the permissions to delete the invocation message. I need the `Manage Messages` permission!")

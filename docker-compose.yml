@@ -1,0 +1,21 @@
+version: "3"
+services:
+  bot:
+    build: .
+    environment:
+      - DATABASE_URL
+      - BOT_TOKEN
+      - BOT_STATE
+  db:
+    image: postgres:alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - "db_data:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_PASSWORD: "yeet"
+      POSTGRES_USER: "bot"
+      POSTGRES_DB: "bot"
+
+volumes:
+  db_data:
