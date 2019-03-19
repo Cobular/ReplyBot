@@ -1,3 +1,8 @@
+"""Contains assorted methods used throughout the program.
+
+See individual docstrings for more info
+"""
+
 import re
 import random
 from discord.ext.commands import context
@@ -48,7 +53,3 @@ async def delete_invocation(ctx: context):
     except Forbidden:
         ctx.send(
             "I don't have the permissions to delete the invocation message. I need the `Manage Messages` permission!")
-
-
-async def update_prefix(bot, id):
-    await bot.change_presence(activity=discord.Game(name='Type `' + get_prefix(id) + 'help` to get started!'))
