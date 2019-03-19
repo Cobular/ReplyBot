@@ -161,7 +161,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                 session.add(current_message)
             session.commit()
             session.close()
-            Message.prune_db(2000)
+            Message.prune_db(50000)
 
     async def send_original_message(self, ctx, message_content, message_sender, message_sent_time,
                                     message_id):
