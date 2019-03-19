@@ -16,6 +16,5 @@ services:
       POSTGRES_PASSWORD: "yeet"
       POSTGRES_USER: "bot"
       POSTGRES_DB: "bot"
-
 volumes:
   db_data:
