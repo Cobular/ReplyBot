@@ -47,8 +47,4 @@ def quote_selector():
 
 
 async def delete_invocation(ctx: context):
-    try:
-        ctx.message.detete()
-    except Forbidden:
-        ctx.send(
-            "I don't have the permissions to delete the invocation message. I need the `Manage Messages` permission!")
+    # Just call await ctx.message.delete() in the function.

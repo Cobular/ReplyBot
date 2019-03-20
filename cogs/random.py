@@ -25,7 +25,7 @@ class RandomCog(commands.Cog, name="Random Commands"):
         await ctx.send("Here, have an invite! Click this to add ReplyBot to your server! \n"
                        "https://discordapp.com/oauth2/authorize?client_id="
                        "494936000360087563&scope=bot&permissions=201620576")
-        await methods.delete_invocation(ctx)
+        await ctx.message.delete()
 
     # Responsible for the flex-tape easter egg.
     # TODO: Add a toggle command to enable or disable the egg

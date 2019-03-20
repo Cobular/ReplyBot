@@ -176,8 +176,6 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         await self.send_response(ctx, response, channel, new_message_content, new_message_sender_id,
                                  new_message_channel_id, new_message_sent_time, new_message_id)
 
-        await methods.delete_invocation(ctx)
-
     async def send_response(self, ctx: Context, response, channel, original_content, original_sender_id,
                             original_channel_id, original_sent_time, original_message_id):
         """Checks that the requester has the read_messages permission on the requested channel.
