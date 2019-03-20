@@ -47,6 +47,18 @@ class Message(Base):
             logging.log(20, str(count) + " messages deleted")
 
 
+class TempMessages(Base):
+    __tablename__ = "tempmessages"
+
+    id = Column("id", Integer, primary_key=True)
+    message_id = Column('message_id', BIGINT, nullable=False)
+    message_sender = Column("message_sender", BIGINT, index=True, nullable=False)
+    message_channel = Column("message_channel", BIGINT)
+    message_server = Column("message_server", BIGINT)
+    message_sent_time = Column("message_sent_time", TIMESTAMP, default=datetime.utcnow)
+    message_reactor_id = Column("message_reactor_id", BIGINT, nullable=False)
+
+
 def create_db():
     Base.metadata.create_all(engine)
 
