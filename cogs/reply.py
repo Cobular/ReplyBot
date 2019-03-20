@@ -3,6 +3,7 @@
 Also is responsible for saving messages sent to the bot
 """
 
+import logging
 import typing
 from datetime import datetime
 
@@ -11,8 +12,7 @@ from discord.ext import commands
 from discord.ext.commands.context import Context
 from sqlalchemy import func
 
-import logging
-from models import Message, make_session
+from models import Message, make_session, TempMessage
 from tools import methods
 
 
@@ -192,19 +192,19 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             if response is not None:  # Check to see if the message has an attached response
                 if channel is not None and channel.id != original_channel_id:  # Print with channel name included if pulled from another channel
                     await send_original_message(ctx, original_content, original_sender_id, original_sent_time,
-                                                     original_message_id)
+                                                original_message_id)
                     await ctx.send("To which " + ctx.message.author.mention + " says:")
                     await send_original_message_no_channel(ctx, response, ctx.message.author.id,
-                                                                datetime.utcnow(), ctx.message.id)
+                                                           datetime.utcnow(), ctx.message.id)
                 else:  # Print normally with a response
                     await send_original_message_no_channel(ctx, original_content, original_sender_id,
-                                                                original_sent_time, original_message_id)
+                                                           original_sent_time, original_message_id)
                     await ctx.send("To which " + ctx.message.author.mention + " says:")
                     await send_original_message_no_channel(ctx, response, ctx.message.author.id,
-                                                                datetime.utcnow(), ctx.message.id)
+                                                           datetime.utcnow(), ctx.message.id)
             else:
                 await send_original_message_no_channel(ctx, original_content, original_sender_id,
-                                                            original_sent_time, original_message_id)
+                                                       original_sent_time, original_message_id)
         else:
             logging.info("User had insufficient permissions to access that text")
             await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
@@ -224,7 +224,8 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             skip_saving = True
         if 'r!' in message.content:
             skip_saving = True
-
+        if message.content.startswith("〰"):
+            await self.reacted_message_response(message)
         if not skip_saving:
             session = make_session()
             if message.clean_content != '':
@@ -244,6 +245,24 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             session.delete(new_message)
             session.commit()
         session.close()
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        message = reaction.message
+        session = make_session()
+        new_temp_message = TempMessage(message_id=message.id, message_sender=message.sender.id,
+                                       message_channel=message.channel.id, message_server=message.guild.id,
+                                       message_reactor_id=user.id)
+        session.add(new_temp_message)
+        session.commit()
+        session.close()
+
+    @commands.Cog.listener()
+    async def reacted_message_response(self, message: discord.Message):
+        session = make_session()
+        original_message = session.query(TempMessage).filter(
+            TempMessage.message_reactor_id == message.author.id).order_by(Message.message_sent_time.desc()).first()
+
 
 
 def setup(bot):

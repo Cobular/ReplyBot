@@ -47,7 +47,7 @@ class Message(Base):
             logging.log(20, str(count) + " messages deleted")
 
 
-class TempMessages(Base):
+class TempMessage(Base):
     __tablename__ = "tempmessages"
 
     id = Column("id", Integer, primary_key=True)
