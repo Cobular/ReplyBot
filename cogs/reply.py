@@ -178,30 +178,6 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
 
         await methods.delete_invocation(ctx)
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        """Saves a message sent on a server the bot is in.
-
-        Will not save if it is a command for this bot or if the message is from this bot
-        """
-        skip_saving = False
-
-        if message.author == self.bot.user:
-            skip_saving = True
-        if 'r!' in message.content:
-            skip_saving = True
-
-        if not skip_saving:
-            session = make_session()
-            if message.clean_content != '':
-                current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
-                                          message_channel=message.channel.id, message_server=message.guild.id,
-                                          message_id=message.id)
-                session.add(current_message)
-            session.commit()
-            session.close()
-            Message.prune_db(50000)
-
     async def send_response(self, ctx: Context, response, channel, original_content, original_sender_id,
                             original_channel_id, original_sent_time, original_message_id):
         """Checks that the requester has the read_messages permission on the requested channel.
@@ -233,6 +209,41 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             logging.info("User had insufficient permissions to access that text")
             await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
                            "\nYou may also not be able to view the channel that the message was from.")
+
+    # -----------------------------------------------------------------------------------------------------------------
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        """Saves a message sent on a server the bot is in.
+
+        Will not save if it is a command for this bot or if the message is from this bot
+        """
+        skip_saving = False
+
+        if message.author == self.bot.user:
+            skip_saving = True
+        if 'r!' in message.content:
+            skip_saving = True
+
+        if not skip_saving:
+            session = make_session()
+            if message.clean_content != '':
+                current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
+                                          message_channel=message.channel.id, message_server=message.guild.id,
+                                          message_id=message.id)
+                session.add(current_message)
+            session.commit()
+            session.close()
+            Message.prune_db(50000)
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message):
+        session = make_session()
+        new_message = session.query(Message).filter(Message.message_id == message.id).first()
+        if new_message is not None:
+            session.delete(new_message)
+            session.commit()
+        session.close()
 
 
 def setup(bot):
