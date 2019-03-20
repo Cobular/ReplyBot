@@ -5,7 +5,7 @@ Also is responsible for saving messages sent to the bot
 
 import logging
 import typing
-from datetime import datetime
+import datetime
 
 import discord
 from discord.ext import commands
@@ -151,7 +151,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         channel: (Optional) The #channel_name for a text channel. Will only search in that channel.
         user: (Optional) The @user_name for a user. Will only search for that user.
         search term: (Required) The part of a message to search for.
-        response: (Optional) Your response to append to the end of the message. Make sure to add the 〰 to deliniate.
+        response: (Optional) Your response to append to the end of the message. Make sure to add the 〰 to delineate.
         """
         # Null Check is used to tell if a hit was found must be initialized here
         new_message: Message = None
@@ -160,7 +160,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
 
         new_message = database_search(ctx, channel, target_user, search_terms)
 
-        # Catch the failure to find a message before other things are requested of new_message, avoiding null refrences
+        # Catch the failure to find a message before other things are requested of new_message, avoiding null references
         if not new_message:
             await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
                            "\nYou may also not be able to view the channel that the message was from.")
@@ -184,24 +184,23 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
 
         If so, sends message. If not, sends error to the user
         """
-        # For unit testing
-
         # Checks to make sure the requester has perms to see the channel the message is in
         if ctx.message.author.permissions_in(self.bot.get_channel(original_channel_id)).read_messages:
             logging.debug(methods.clean_string_light(original_content))
             if response is not None:  # Check to see if the message has an attached response
-                if channel is not None and channel.id != original_channel_id:  # Print with channel name included if pulled from another channel
+                if channel is not None and channel.id != original_channel_id:
+                    # Print with channel name included if pulled from another channel
                     await send_original_message(ctx, original_content, original_sender_id, original_sent_time,
                                                 original_message_id)
                     await ctx.send("To which " + ctx.message.author.mention + " says:")
                     await send_original_message_no_channel(ctx, response, ctx.message.author.id,
-                                                           datetime.utcnow(), ctx.message.id)
+                                                           datetime.datetime.utcnow(), ctx.message.id)
                 else:  # Print normally with a response
                     await send_original_message_no_channel(ctx, original_content, original_sender_id,
                                                            original_sent_time, original_message_id)
                     await ctx.send("To which " + ctx.message.author.mention + " says:")
                     await send_original_message_no_channel(ctx, response, ctx.message.author.id,
-                                                           datetime.utcnow(), ctx.message.id)
+                                                           datetime.datetime.utcnow(), ctx.message.id)
             else:
                 await send_original_message_no_channel(ctx, original_content, original_sender_id,
                                                        original_sent_time, original_message_id)
@@ -226,6 +225,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             skip_saving = True
         if message.content.startswith("〰"):
             await self.reacted_message_response(message)
+            skip_saving = True
         if not skip_saving:
             session = make_session()
             if message.clean_content != '':
@@ -247,22 +247,33 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         session.close()
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction, user):
-        message = reaction.message
-        session = make_session()
-        new_temp_message = TempMessage(message_id=message.id, message_sender=message.sender.id,
-                                       message_channel=message.channel.id, message_server=message.guild.id,
-                                       message_reactor_id=user.id)
-        session.add(new_temp_message)
-        session.commit()
-        session.close()
+    async def on_reaction_add(self, reaction: discord.Reaction, user):
+        if reaction.emoji == '〰':
+            message = reaction.message
+            session = make_session()
+            new_temp_message = TempMessage(message_id=message.id, message_sender=message.author.id,
+                                           message_channel=message.channel.id, message_server=message.guild.id,
+                                           message_reactor_id=user.id)
+            session.add(new_temp_message)
+            session.commit()
+            session.close()
 
-    @commands.Cog.listener()
     async def reacted_message_response(self, message: discord.Message):
         session = make_session()
-        original_message = session.query(TempMessage).filter(
-            TempMessage.message_reactor_id == message.author.id).order_by(Message.message_sent_time.desc()).first()
-
+        original_message: TempMessage = session.query(TempMessage).filter(
+            TempMessage.message_reactor_id == message.author.id).order_by(TempMessage.message_sent_time.desc()).first()
+        if original_message is None:
+            return
+        elif original_message.message_sent_time >= datetime.datetime.now() - datetime.timedelta(minutes=5):
+            request_ctx = await self.bot.get_context(message)
+            original_message_data: discord.Message = await get_message(request_ctx, original_message.message_id)
+            # channel_object = await self.bot.get_channel()
+            junk, response_content = split_message(message.clean_content)
+            await self.send_response(request_ctx, response_content, message.channel,
+                                     original_message_data.clean_content,
+                                     original_message_data.author.id, original_message_data.channel.id,
+                                     original_message_data.created_at, original_message_data.id)
+        TempMessage.prune_db(2)
 
 
 def setup(bot):

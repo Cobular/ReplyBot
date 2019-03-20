@@ -3,18 +3,17 @@
 See individual docstrings for more info
 """
 
-import re
 import random
-from discord.ext.commands import context
+import re
+
 from discord import Forbidden
-import discord
-import json
+from discord.ext.commands import context
 
 
 def clean_string(string_to_clean):
-    """ Cleans text fed into it. Does so pretty agresively, be warned
+    """ Cleans text fed into it. Does so pretty abrasively, be warned
 
-    Strips whitespace, lowercases message, removes all characters not matching this regrex: '[A-Za-z0-9]+'
+    Strips whitespace, lowercases message, removes all characters not matching this regex: '[A-Za-z0-9]+'
     :param string_to_clean: The string that is going to be cleaned
     :return cleaned_string: The string post-cleaning.
     """
@@ -22,9 +21,9 @@ def clean_string(string_to_clean):
 
 
 def clean_string_light(string_to_clean):
-    """ Cleans text fed into it. Does so pretty agresively, be warned
+    """ Cleans text fed into it. Does so pretty aggressively, be warned
 
-    Strips whitespace, lowercases message, removes all characters not matching this regrex: '[A-Za-z0-9]+'
+    Strips whitespace, lowercases message, removes all characters not matching this regex: '[A-Za-z0-9]+'
     :param string_to_clean: The string that is going to be cleaned
     :return cleaned_string: The string post-cleaning.
     """
