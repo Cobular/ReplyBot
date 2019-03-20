@@ -3,9 +3,9 @@
 Also is responsible for saving messages sent to the bot
 """
 
+import datetime
 import logging
 import typing
-import datetime
 
 import discord
 from discord.ext import commands
@@ -246,6 +246,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user):
+        """Checks to see if the reaction added is the '〰' emoji. If so, save the message from the db"""
         if reaction.emoji == '〰':
             message = reaction.message
             session = make_session()
@@ -253,6 +254,19 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                                            message_channel=message.channel.id, message_server=message.guild.id,
                                            message_reactor_id=user.id)
             session.add(new_temp_message)
+            session.commit()
+            session.close()
+
+    @commands.Cog.listener()
+    async def on_reaction_remove(self, reaction, user):
+        """Checks to see if the reaction removed is the '〰' emoji. If so, remove the message from the db"""
+        if reaction.emoji == '〰':
+            message = reaction.message
+            session = make_session()
+            new_temp_message = session.query(TempMessage).filter_by(message_id=message.id,
+                                                                    message_server=message.guild.id,
+                                                                    message_reactor_id=user.id).first()
+            session.delete(new_temp_message)
             session.commit()
             session.close()
 

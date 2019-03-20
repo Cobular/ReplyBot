@@ -6,9 +6,6 @@ See individual docstrings for more info
 import random
 import re
 
-from discord import Forbidden
-from discord.ext.commands import context
-
 
 def clean_string(string_to_clean):
     """ Cleans text fed into it. Does so pretty abrasively, be warned
@@ -46,5 +43,5 @@ def quote_selector():
     return switch.get(selector, "Invalid Quote Choice")
 
 
-async def delete_invocation(ctx: context):
+# async def delete_invocation(ctx: context):
     # Just call await ctx.message.delete() in the function.
