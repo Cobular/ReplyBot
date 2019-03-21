@@ -31,7 +31,7 @@ def split_message(user_input):
 
 async def get_message(ctx, message_id: int):
     """Gets the message from an ID"""
-    message = await ctx.get_message(message_id)
+    message = await ctx.fetch_message(message_id)
     return message
 
 
@@ -249,7 +249,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         """Checks to see if the reaction added is the '〰' emoji. If so, save the message from the db"""
         if payload.emoji.name == '〰':
             channel: discord.TextChannel = self.bot.get_channel(payload.channel_id)
-            message: discord.message = await channel.get_message(payload.message_id)
+            message: discord.message = await channel.fetch_message(payload.message_id)
             session = make_session()
             new_temp_message = TempMessage(message_id=message.id, message_sender=message.author.id,
                                            message_channel=message.channel.id, message_server=message.guild.id,
@@ -264,7 +264,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         """Checks to see if the reaction removed is the '〰' emoji. If so, remove the message from the db"""
         if payload.emoji.name == '〰':
             channel = self.bot.get_channel(payload.channel_id)
-            message = await channel.get_message(payload.message_id)
+            message = await channel.fetch_message(payload.message_id)
             session = make_session()
             new_temp_message = session.query(TempMessage).filter_by(message_id=message.id,
                                                                     message_server=message.guild.id,
