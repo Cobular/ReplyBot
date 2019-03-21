@@ -21,7 +21,7 @@ import logging
 # long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
                    description="Thanks for using ReplyBot, Replying for Gamers!")
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.INFO)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 BOT_TOKEN = os.environ['BOT_TOKEN']
@@ -43,6 +43,7 @@ if __name__ == '__main__':
         # noinspection PyBroadException
         try:
             bot.load_extension(extension)
+            logging.info(f'Successfully loaded extension {extension}')
         except Exception as e:
             logging.error(f'Failed to load extension {extension}.')
 

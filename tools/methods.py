@@ -3,18 +3,14 @@
 See individual docstrings for more info
 """
 
-import re
 import random
-from discord.ext.commands import context
-from discord import Forbidden
-import discord
-import json
+import re
 
 
 def clean_string(string_to_clean):
-    """ Cleans text fed into it. Does so pretty agresively, be warned
+    """ Cleans text fed into it. Does so pretty abrasively, be warned
 
-    Strips whitespace, lowercases message, removes all characters not matching this regrex: '[A-Za-z0-9]+'
+    Strips whitespace, lowercases message, removes all characters not matching this regex: '[A-Za-z0-9]+'
     :param string_to_clean: The string that is going to be cleaned
     :return cleaned_string: The string post-cleaning.
     """
@@ -22,9 +18,9 @@ def clean_string(string_to_clean):
 
 
 def clean_string_light(string_to_clean):
-    """ Cleans text fed into it. Does so pretty agresively, be warned
+    """ Cleans text fed into it. Does so pretty aggressively, be warned
 
-    Strips whitespace, lowercases message, removes all characters not matching this regrex: '[A-Za-z0-9]+'
+    Strips whitespace, lowercases message, removes all characters not matching this regex: '[A-Za-z0-9]+'
     :param string_to_clean: The string that is going to be cleaned
     :return cleaned_string: The string post-cleaning.
     """
@@ -47,9 +43,5 @@ def quote_selector():
     return switch.get(selector, "Invalid Quote Choice")
 
 
-async def delete_invocation(ctx: context):
-    try:
-        ctx.message.detete()
-    except Forbidden:
-        ctx.send(
-            "I don't have the permissions to delete the invocation message. I need the `Manage Messages` permission!")
+# async def delete_invocation(ctx: context):
+    # Just call await ctx.message.delete() in the function.
