@@ -139,7 +139,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
     """ReplyCog"""
 
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.Bot = bot
 
     @commands.command(usage="[<channel> <target_user>] <search term> [〰 <response>]")
     async def reply(self, ctx: Context, channel: typing.Optional[discord.TextChannel],
@@ -245,28 +245,32 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         session.close()
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user):
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         """Checks to see if the reaction added is the '〰' emoji. If so, save the message from the db"""
-        if reaction.emoji == '〰':
-            message = reaction.message
+        if payload.emoji.name == '〰':
+            channel: discord.TextChannel = self.bot.get_channel(payload.channel_id)
+            message: discord.message = await channel.get_message(payload.message_id)
             session = make_session()
             new_temp_message = TempMessage(message_id=message.id, message_sender=message.author.id,
                                            message_channel=message.channel.id, message_server=message.guild.id,
-                                           message_reactor_id=user.id)
+                                           message_reactor_id=payload.user_id)
             session.add(new_temp_message)
             session.commit()
             session.close()
+            TempMessage.prune_db(1)
 
     @commands.Cog.listener()
-    async def on_reaction_remove(self, reaction, user):
+    async def on_raw_reaction_remove(self, payload):
         """Checks to see if the reaction removed is the '〰' emoji. If so, remove the message from the db"""
-        if reaction.emoji == '〰':
-            message = reaction.message
+        if payload.emoji.name == '〰':
+            channel = self.bot.get_channel(payload.channel_id)
+            message = await channel.get_message(payload.message_id)
             session = make_session()
             new_temp_message = session.query(TempMessage).filter_by(message_id=message.id,
                                                                     message_server=message.guild.id,
-                                                                    message_reactor_id=user.id).first()
-            session.delete(new_temp_message)
+                                                                    message_reactor_id=payload.user_id).first()
+            if new_temp_message is not None:
+                session.delete(new_temp_message)
             session.commit()
             session.close()
 
