@@ -76,3 +76,5 @@ fabric.properties
 __pycache__/
 
 *.xml
+
+\.vscode/
