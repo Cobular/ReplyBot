@@ -16,16 +16,18 @@ from models import Message, make_session, TempMessage
 from tools import methods
 
 
-def split_message(user_input):
+def split_message(user_input: str):
     """Splits up the inserted text on the :wavy-dash: character"""
     # noinspection PyBroadException
     try:
         search_terms, response = user_input.split("〰", 1)
-        logging.debug(search_terms + "::" + response)
+        logging.info(search_terms + "::" + response)
+        search_terms = search_terms.strip()
+        response = response.strip()
     except:
-        search_terms = user_input
+        search_terms = user_input.strip()
         response = None
-        logging.debug(search_terms + "::nothing")
+        logging.info(search_terms + "::nothing")
     return search_terms, response
 
 
@@ -162,8 +164,10 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
 
         # Catch the failure to find a message before other things are requested of new_message, avoiding null references
         if not new_message:
+            print("Sending Message...")
             await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
                            "\nYou may also not be able to view the channel that the message was from.")
+            print("Message Sent!")
             return
 
         # Had issues getting the children of new_message, this reduced them
