@@ -14,6 +14,7 @@ def clean_string(string_to_clean):
     :param string_to_clean: The string that is going to be cleaned
     :return cleaned_string: The string post-cleaning.
     """
+    # ACK: Regex tutorial for basic regex concepts, actual statement made by me
     return re.sub('[^A-Za-z0-9]+', '', string_to_clean.strip().lower())
 
 
@@ -24,6 +25,7 @@ def clean_string_light(string_to_clean):
     :param string_to_clean: The string that is going to be cleaned
     :return cleaned_string: The string post-cleaning.
     """
+    # ACK: Regex tutorial for basic regex concepts, actual statement made by me
     return re.sub('[`\r\n]+', '', string_to_clean.strip())
 
 

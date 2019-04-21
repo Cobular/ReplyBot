@@ -1,3 +1,4 @@
+# ACK: TJ Horner's Video Explanation of Docker
 version: "3"
 services:
   bot:

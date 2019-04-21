@@ -16,10 +16,13 @@ from models import Message, make_session, TempMessage
 from tools import methods
 
 
+# ABSTRACTION: This abstraction removes some of the complexity from the very complex function database_search`
 def split_message(user_input: str):
     """Splits up the inserted text on the :wavy-dash: character"""
+    # no inspection ACK: Pycharm's fix menu
     # noinspection PyBroadException
     try:
+        # str.split ACK: StackOverflow Post TODO: Find post
         search_terms, response = user_input.split("〰", 1)
         logging.info(search_terms + "::" + response)
         search_terms = search_terms.strip()
@@ -31,15 +34,18 @@ def split_message(user_input: str):
     return search_terms, response
 
 
-async def get_message(ctx, message_id: int):
-    """Gets the message from an ID"""
+async def get_message_by_id(ctx, message_id: int):
+    """Gets the message from an ID. Can probably be removed, was more complicated in the past"""
     message = await ctx.fetch_message(message_id)
     return message
+
 
 
 def database_search(ctx: Context, channel: typing.Optional[discord.TextChannel],
                     target_user: typing.Optional[discord.Member], search_terms: str) -> discord.message.Message:
     """Searches through the database for the search for the requested message.
+
+    Depending on the data it is fed, the function will decide on what query to run, then construct and run that query
 
     :param ctx: The Context of the message
     :param channel: The channel that the desired message is in. Is optional
@@ -108,11 +114,13 @@ def database_search(ctx: Context, channel: typing.Optional[discord.TextChannel],
     return new_message
 
 
+# ABSTRCATION: Creates and sends a pretty complicated embed object all withi this function.
+# ACK: Discord Embed Generator's Export tool
 async def send_original_message_no_channel(ctx, message_content, message_sender, message_sent_time,
                                            message_id):
     """Sends a message as an embed, doesn't include the channel it was sent from"""
     sender = ctx.guild.get_member(message_sender)
-    message = await get_message(ctx, message_id)
+    message = await get_message_by_id(ctx, message_id)
     embed = discord.Embed(colour=sender.color, description="**" + message_content + "**",
                           timestamp=message_sent_time)
     embed.set_author(name=sender.display_name, icon_url=sender.avatar_url,
@@ -121,12 +129,13 @@ async def send_original_message_no_channel(ctx, message_content, message_sender,
 
     await ctx.send(embed=embed)
 
-
+# ABSTRCATION: Creates and sends a pretty complicated embed object all withi this function.
+# ACK: Discord Embed Generator's Export tool
 async def send_original_message(ctx, message_content, message_sender, message_sent_time,
                                 message_id):
     """Sends a message as an embed, includes the channel it was sent from"""
     sender = ctx.guild.get_member(message_sender)
-    message = await get_message(ctx, message_id)
+    message = await get_message_by_id(ctx, message_id)
     embed = discord.Embed(colour=sender.color, description="**" + message_content + "**",
                           timestamp=message_sent_time)
     embed.set_author(name=sender.display_name, icon_url=sender.avatar_url,
@@ -137,6 +146,7 @@ async def send_original_message(ctx, message_content, message_sender, message_se
     await ctx.send(embed=embed)
 
 
+# Basic Cog Structure ACK: See admin.py for cog related ACKs
 class ReplyCog(commands.Cog, name="Reply Commands"):
     """ReplyCog"""
 
@@ -155,7 +165,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         search term: (Required) The part of a message to search for.
         response: (Optional) Your response to append to the end of the message. Make sure to add the 〰 to delineate.
         """
-        # Null Check is used to tell if a hit was found must be initialized here
+        # Null Check is used to tell if a hit was found must be initialized here, otherwise there is a null refrence error
         new_message: Message = None
 
         search_terms, response = split_message(user_input)
@@ -180,6 +190,8 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         await self.send_response(ctx, response, channel, new_message_content, new_message_sender_id,
                                  new_message_channel_id, new_message_sent_time, new_message_id)
 
+    # ABSTRACTION: the logic for what type of message will be sent is contained here,
+    # making the main method of this cog, reply, much more simple to read and understand
     async def send_response(self, ctx: Context, response, channel, original_content, original_sender_id,
                             original_channel_id, original_sent_time, original_message_id):
         """Checks that the requester has the read_messages permission on the requested channel.
@@ -207,6 +219,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                 await send_original_message_no_channel(ctx, original_content, original_sender_id,
                                                        original_sent_time, original_message_id)
         else:
+            # ACK: Discord Logging Tutotial
             logging.info("User had insufficient permissions to access that text")
             await ctx.send("Failed to find the requested message! Please try again with less specific search terms. "
                            "\nYou may also not be able to view the channel that the message was from.")
@@ -221,13 +234,17 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         """
         skip_saving = False
 
+        # ACK: Discord.py bot documentation; keeps the bot from storing it's own messages
         if message.author == self.bot.user:
             skip_saving = True
+        # Keeps the bot from storing commands
         if 'r!' in message.content:
             skip_saving = True
+        # Catagrizes the messages starting with "〰" seperately
         if message.content.startswith("〰"):
             await self.reacted_message_response(message)
             skip_saving = True
+        # Actually save the message
         if not skip_saving:
             session = make_session()
             if message.clean_content != '':
@@ -241,6 +258,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
+        """Makes sure not to store messages past deletion on Discord"""
         session = make_session()
         new_message = session.query(Message).filter(Message.message_id == message.id).first()
         if new_message is not None:
@@ -248,6 +266,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             session.commit()
         session.close()
 
+    # Method to use ACK: Discord.py docuemntation - events list
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         """Checks to see if the reaction added is the '〰' emoji. If so, save the message from the db"""
@@ -263,6 +282,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             session.close()
             TempMessage.prune_db(1)
 
+    # Method to use ACK: Discord.py docuemntation - events list
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
         """Checks to see if the reaction removed is the '〰' emoji. If so, remove the message from the db"""
@@ -280,16 +300,17 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
 
     async def reacted_message_response(self, message: discord.Message):
         session = make_session()
+        requested_ctx = await self.bot.get_context(message)
         original_message: TempMessage = session.query(TempMessage).filter(
             TempMessage.message_reactor_id == message.author.id).order_by(TempMessage.message_sent_time.desc()).first()
         if original_message is None:
-            return
+            requested_ctx.say("It doesn't seem like have reacted to a message! "
+                              "Make sure you ready with the `:wavy-dash:` emoji (〰)")
         elif original_message.message_sent_time >= datetime.datetime.now() - datetime.timedelta(minutes=5):
-            request_ctx = await self.bot.get_context(message)
-            original_message_data: discord.Message = await get_message(request_ctx, original_message.message_id)
+            original_message_data: discord.Message = await get_message_by_id(requested_ctx, original_message.message_id)
             # channel_object = await self.bot.get_channel()
             junk, response_content = split_message(message.clean_content)
-            await self.send_response(request_ctx, response_content, message.channel,
+            await self.send_response(requested_ctx, response_content, message.channel,
                                      original_message_data.clean_content,
                                      original_message_data.author.id, original_message_data.channel.id,
                                      original_message_data.created_at, original_message_data.id)

@@ -14,6 +14,8 @@ engine = create_engine(DATABASE_URL, echo=False)
 Base = declarative_base()
 
 
+# ACK: Flask Megatutorial for the basic ideas and example syntax of SQLAlchemy Tables
+# The methods contained within the class were written by me TODO: Confirm this
 class Message(Base):
     __tablename__ = "messages"
 
@@ -49,6 +51,8 @@ class Message(Base):
             logging.info(str(count) + " messages deleted in Messages")
 
 
+# ACK: Flask Megatutorial for the basic ideas and example syntax of SQLAlchemy Tables
+# The methods contained within the class were written by me TODO: Confirm this
 class TempMessage(Base):
     __tablename__ = "tempmessages"
 
@@ -62,6 +66,7 @@ class TempMessage(Base):
 
     @staticmethod
     def prune_db(num_to_get_to: int):
+        """Limits the TempMessage database to a certain number of messages per user"""
         session = make_session()
         count = 0
         users = session.query(TempMessage.message_reactor_id).distinct()
@@ -81,16 +86,20 @@ class TempMessage(Base):
             logging.info(str(count) + " messages deleted in TempMessages")
 
 
+# ACK: StackOverflow post for how to get the raw sql for a table's creation with sqlalchemy
 def create_db():
     Base.metadata.create_all(engine)
 
 
+# ACK: StackOverflow post for how to get the raw sql for a table's creation with sqlalchemy
 def print_model_sql():
     created_table = CreateTable(TempMessage.__table__)
     tableCompiled = created_table.compile(engine)
     print(tableCompiled)
 
 
+# ACK: StackOverflow how to get data from a database SQLAlchemy
+# ACK: SQLAlchemy Docs
 def make_session():
     """ Makes a database session needed to access the DB. Be sure to close the session afterwards!
 

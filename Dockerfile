@@ -1,3 +1,4 @@
+# ACK: TJ Horner's Video Explination of Docker
 FROM python:3.7
 
 WORKDIR /app

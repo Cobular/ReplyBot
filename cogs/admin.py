@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 
+# General Cog Structure ACK: Discord.py Documentation, Rasst
 class AdminCog(commands.Cog, name="Admin Commands"):
     """AdminCogs"""
 
@@ -11,6 +12,7 @@ class AdminCog(commands.Cog, name="Admin Commands"):
         self.bot = bot
 
     # Hidden means it won't show up on the default help.
+    # ACK: Discord.py cog loader example TODO: find Gist that this came from
     @commands.command(name='load', hidden=True)
     @commands.is_owner()
     async def cog_load(self, ctx, *, cog: str):
@@ -27,7 +29,7 @@ class AdminCog(commands.Cog, name="Admin Commands"):
     @commands.command(hidden=True, name="prefix")
     @commands.has_role('Mod')
     async def change_prefix(self, ctx, *, new_prefix: str):
-        """ Changes the prefix used to call the bot. Only usable mod role. Currently broken
+        """ Changes the prefix used to call the bot. Only usable mod role. Currently broken, DO NOT USE!!
 
         Default prefix is r!
         Literally requires a role with name 'Mod' to use
@@ -39,5 +41,6 @@ class AdminCog(commands.Cog, name="Admin Commands"):
         await self.bot.change_presence(activity=discord.Game(name='Type `' + bot_prefix + 'help` to get started!'))
 
 
+# ACK: StackOverflow Post TODO: Find the link to this
 def setup(bot):
     bot.add_cog(AdminCog(bot))

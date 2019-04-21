@@ -10,6 +10,7 @@ from discord.ext.commands import BucketType
 from tools import methods
 
 
+# Basic Cog Structure ACK: See admin.py for cog related ACKs
 class RandomCog(commands.Cog, name="Random Commands"):
     """RandomCog"""
 
