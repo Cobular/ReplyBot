@@ -8,14 +8,16 @@ from sqlalchemy.schema import CreateTable
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Session
 
+# Past Project that used this code ACK: Flask Megatutorial for the basic ideas and example syntax of SQLAlchemy Tables:
+# https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database
+
 DATABASE_URL = os.environ['DATABASE_URL']
 engine = create_engine(DATABASE_URL, echo=False)
 
 Base = declarative_base()
 
 
-# ACK: Flask Megatutorial for the basic ideas and example syntax of SQLAlchemy Tables
-# The methods contained within the class were written by me TODO: Confirm this
+# The methods contained within the class were written by me
 class Message(Base):
     __tablename__ = "messages"
 
@@ -51,7 +53,6 @@ class Message(Base):
             logging.info(str(count) + " messages deleted in Messages")
 
 
-# ACK: Flask Megatutorial for the basic ideas and example syntax of SQLAlchemy Tables
 # The methods contained within the class were written by me TODO: Confirm this
 class TempMessage(Base):
     __tablename__ = "tempmessages"
@@ -86,20 +87,19 @@ class TempMessage(Base):
             logging.info(str(count) + " messages deleted in TempMessages")
 
 
-# ACK: StackOverflow post for how to get the raw sql for a table's creation with sqlalchemy
 def create_db():
     Base.metadata.create_all(engine)
 
 
-# ACK: StackOverflow post for how to get the raw sql for a table's creation with sqlalchemy
+# ACK: StackOverflow post for how to get the raw sql for a table's creation with sqlalchemy:
+# https://stackoverflow.com/questions/2128717/sqlalchemy-printing-raw-sql-from-create
 def print_model_sql():
     created_table = CreateTable(TempMessage.__table__)
     tableCompiled = created_table.compile(engine)
     print(tableCompiled)
 
 
-# ACK: StackOverflow how to get data from a database SQLAlchemy
-# ACK: SQLAlchemy Docs
+# ACK: SQLAlchemy Docs: https://docs.sqlalchemy.org/en/13/orm/tutorial.html
 def make_session():
     """ Makes a database session needed to access the DB. Be sure to close the session afterwards!
 

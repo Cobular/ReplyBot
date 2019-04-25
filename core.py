@@ -17,10 +17,11 @@ from discord.ext import commands
 import os
 import logging
 
-# ACK: Discord.py Documentation, Rasst
+
+# ACK: Discord.py Documentation, Rapptz: https://discordpy.readthedocs.io/en/latest/
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
                    description="Thanks for using ReplyBot, Replying for Gamers!")
-# ACK: Python Logging Tutorial
+# ACK: Python Logging Tutorial: https://realpython.com/python-logging/
 logging.basicConfig(level=logging.INFO)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
@@ -38,7 +39,7 @@ initial_extensions = ['cogs.reply',
                       'cogs.admin']
 
 # Here we load our extensions(cogs) listed above in [initial_extensions].
-# ACK: User support on Discord TODO: find user who helped
+# ACK: User-made gist: https://gist.github.com/leovoel/46cd89ed6a8f41fd09c5
 if __name__ == '__main__':
     for extension in initial_extensions:
         # noinspection PyBroadException
@@ -46,25 +47,25 @@ if __name__ == '__main__':
             bot.load_extension(extension)
             logging.info(f'Successfully loaded extension {extension}')
         except Exception as e:
-            logging.error(f'Failed to load extension {extension}.')
+            logging.error(f'Failed to load extension {extension}. Exception: {e}')
 
 
-# ACK: Discord.py Documentation, Rasst
+# ACK: Discord.py Documentation, Rapptz: https://discordpy.readthedocs.io/en/latest/
 @bot.event
 async def on_ready():
     """Sets up the bot's nicknames and the game it is streaming"""
 
     # Checks the login state
     if BOT_STATE == "PRODUCTION":
-        # ACK: Python Logging Tutorial
+        # ACK: Python Logging Tutorial: https://realpython.com/python-logging/
         logging.info("Loaded as Production")
     elif BOT_STATE == "STAGING":
-        # ACK: Python Logging Tutorial
+        # ACK: Python Logging Tutorial: https://realpython.com/python-logging/
         logging.info("Loaded as Staging Changing nickname...")
-        # ACK: Discord.py Documentation, Rasst
+        # ACK: Discord.py Documentation, Rapptz: https://discordpy.readthedocs.io/en/latest/
         await bot.user.edit(nick="ReplyBot_Staging")
     else:
-        # ACK: Python Logging Tutorial
+        # ACK: Python Logging Tutorial: https://realpython.com/python-logging/
         logging.error("Couldn't Find BOT_STATE!! Defaulting to staging")
 
     # Sets up the bot's "game"
@@ -79,31 +80,32 @@ async def on_ready():
     logging.info("We are in {0} server!".format(counter))
 
 
-# ACK: Discord.py Documentation, Rasst
+# ACK: Discord.py Documentation, Rapptz: https://discordpy.readthedocs.io/en/latest/
 @bot.event
 async def on_guild_join(guild):
     """Sets up everything when the bot joins a new server"""
-    # ACK: Python Logging Tutorial
+    # ACK: Python Logging Tutorial: https://realpython.com/python-logging/
     logging.info('We have been added to a new server  {0.name}'.format(guild))
 
     # Sends a message on join, will change nickname on staging and give an error elsewhere
     if BOT_STATE == "PRODUCTION":
-        # ACK: Python Logging Tutorial
+        # ACK: Python Logging Tutorial: https://realpython.com/python-logging/
         logging.info("Loaded mid-run as Production")
     elif BOT_STATE == "STAGING":
-        # ACK: Python Logging Tutorial
+        # ACK: Python Logging Tutorial: https://realpython.com/python-logging/
         logging.info("Loaded mid-run as Staging. Changing nickname...")
         await guild.me.edit(nick="ReplyBot_Staging")
     else:
-        # ACK: Python Logging Tutorial
+        # ACK: Python Logging Tutorial: https://realpython.com/python-logging/
         logging.error("Loaded mid-run but couldn't Find BOT_STATE!! Defaulting to staging")
 
-# ACK: Discord.py Documentation, Rasst
+# ACK: Discord.py Documentation, Rapptz: https://discordpy.readthedocs.io/en/latest/
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         await ctx.send('That command doesn\'t seem to exist! Please try again, and type `'
                        'help` to view the help documentation.')
+        logging.info(f"Bad command entered, {error}")
 
 
 @bot.event
@@ -111,7 +113,7 @@ async def on_message(message):
     # This is just here to exist in case I need it later. Should be moved out soon
     # Insures the other commands are still processed
 
-    # ACK: User help somewhere TODO: figure out where this was
+    # ACK: User help in a github issue: https://github.com/Rapptz/discord.py/issues/186
     await bot.process_commands(message)
 
 bot.run(BOT_TOKEN, bot=True, reconnect=True)

@@ -1,4 +1,4 @@
-# ACK: TJ Horner's Video Explanation of Docker
+# Idea ACK: TJ Horner's Video Explanation of Docker: https://www.youtube.com/watch?v=Y4WSnreOBbo
 version: "3"
 services:
   bot:

@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 
-# General Cog Structure ACK: Discord.py Documentation, Rasst
+# General Cog Structure ACK: Discord.py Documentation, Rapptz: https://discordpy.readthedocs.io/en/latest/
 class AdminCog(commands.Cog, name="Admin Commands"):
     """AdminCogs"""
 
@@ -12,10 +12,10 @@ class AdminCog(commands.Cog, name="Admin Commands"):
         self.bot = bot
 
     # Hidden means it won't show up on the default help.
-    # ACK: Discord.py cog loader example TODO: find Gist that this came from
+    # ACK: User-made gist: https://gist.github.com/leovoel/46cd89ed6a8f41fd09c5
     @commands.command(name='load', hidden=True)
     @commands.is_owner()
-    async def cog_load(self, ctx, *, cog: str):
+    async def load_cog(self, ctx, *, cog: str):
         """Command which Loads a Module.
         Remember to use dot path. e.g: cogs.owner"""
 
@@ -41,6 +41,6 @@ class AdminCog(commands.Cog, name="Admin Commands"):
         await self.bot.change_presence(activity=discord.Game(name='Type `' + bot_prefix + 'help` to get started!'))
 
 
-# ACK: StackOverflow Post TODO: Find the link to this
+# ACK: User-made gist: https://gist.github.com/leovoel/46cd89ed6a8f41fd09c5
 def setup(bot):
     bot.add_cog(AdminCog(bot))

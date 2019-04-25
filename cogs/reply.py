@@ -146,7 +146,7 @@ async def send_original_message(ctx, message_content, message_sender, message_se
     await ctx.send(embed=embed)
 
 
-# Basic Cog Structure ACK: See admin.py for cog related ACKs
+# General Cog Structure ACK: Discord.py Documentation, Rapptz: https://discordpy.readthedocs.io/en/latest/
 class ReplyCog(commands.Cog, name="Reply Commands"):
     """ReplyCog"""
 
@@ -252,6 +252,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                                           message_channel=message.channel.id, message_server=message.guild.id,
                                           message_id=message.id)
                 session.add(current_message)
+                logging.info("Message Saved")
             session.commit()
             session.close()
             Message.prune_db(50000)
@@ -259,6 +260,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         """Makes sure not to store messages past deletion on Discord"""
+        logging.info("Detected a Deletion")
         session = make_session()
         new_message = session.query(Message).filter(Message.message_id == message.id).first()
         if new_message is not None:
@@ -266,7 +268,8 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             session.commit()
         session.close()
 
-    # Method to use ACK: Discord.py docuemntation - events list
+    # Method to use ACK: Discord.py docuemntation - events list:
+    # https://discordpy.readthedocs.io/en/latest/api.html#event-reference
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         """Checks to see if the reaction added is the '〰' emoji. If so, save the message from the db"""
@@ -282,7 +285,8 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             session.close()
             TempMessage.prune_db(1)
 
-    # Method to use ACK: Discord.py docuemntation - events list
+    # Method to use ACK: Discord.py docuemntation - events list:
+    # https://discordpy.readthedocs.io/en/latest/api.html#event-reference
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
         """Checks to see if the reaction removed is the '〰' emoji. If so, remove the message from the db"""
