@@ -3,6 +3,7 @@
 import re
 
 # noinspection PyPackageRequirements
+import discord
 from discord.ext import commands
 from discord.ext.commands import BucketType
 
@@ -30,11 +31,13 @@ class RandomCog(commands.Cog, name="Random Commands"):
     # Responsible for the flex-tape easter egg.
     # TODO: Add a toggle command to enable or disable the egg
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         me = message.guild.me
-        original_nick = me.nick
 
+        if message.author == self.bot.user:
+            return
         if re.search("flex", message.content, re.IGNORECASE):
+            original_nick = me.nick
             await me.edit(nick='Phil Swift')  # Phil Swift Icon: https://i.imgur.com/TNiVQik.jpg
             print('flexy message received')  # Debugging Stuff
             current_message = await message.channel.send(methods.quote_selector(),
