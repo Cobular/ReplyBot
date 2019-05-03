@@ -17,6 +17,16 @@ from discord.ext import commands
 import os
 import logging
 
+# Sets up the google compute cloud logging
+try:
+  import googleclouddebugger
+  googleclouddebugger.enable(
+    module='ReplyBot',
+    version='3.2'
+  )
+except ImportError:
+  pass
+
 
 # long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
