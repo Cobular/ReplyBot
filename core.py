@@ -19,13 +19,14 @@ import logging
 
 # Sets up the google compute cloud logging
 try:
-  import googleclouddebugger
-  googleclouddebugger.enable(
-    module='ReplyBot',
-    version='3.2'
-  )
+    import googleclouddebugger
+
+    googleclouddebugger.enable(
+        module='ReplyBot',
+        version='3.2'
+    )
 except ImportError:
-  pass
+    logging.error("Failed to connect to google cloud debugger!")
 
 
 # long_help_formatter = commands.HelpFormatter(False, False, 100)
@@ -110,5 +111,6 @@ async def on_message(message):
     # This is just here to exist in case I need it later. Should be moved out soon
     # Insures the other commands are still processed
     await bot.process_commands(message)
+
 
 bot.run(BOT_TOKEN, bot=True, reconnect=True)
