@@ -7,6 +7,7 @@ client: error_reporting.client = None
 
 
 def startup():
+    global client
     # noinspection PyBroadException
     try:
         BOT_STATE = os.environ['BOT_STATE']
@@ -15,7 +16,6 @@ def startup():
         client.report_exception()
 
     # Sets up the error handler
-    global client
     client = error_reporting.Client(service="ReplyBot" + BOT_STATE)
 
     # Sets up the google compute cloud logging
@@ -42,3 +42,5 @@ def startup():
         )
     except (ValueError, NotImplementedError):
         client.report_exception()  # Handle errors here
+
+    # Cloud Logging was really hard, I used these instructions https://www.eightypercent.net/post/docker-gcplogs.html
