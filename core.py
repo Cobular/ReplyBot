@@ -17,6 +17,7 @@ from discord.ext import commands
 import os
 import logging
 from tools import gce
+import traceback
 
 # Sets up all the google cloud stuff
 gce.startup()
@@ -50,8 +51,8 @@ if __name__ == '__main__':
             bot.load_extension(extension)
             logging.info(f'Successfully loaded extension {extension}')
         except Exception as e:
-            client.report_exception()
-            logging.error(f'Failed to load extension {extension}.')
+            # client.report_exception()
+            logging.exception(f'Failed to load extension {extension}.', exc_info=traceback.format_exc())
 
 
 @bot.event
@@ -65,7 +66,6 @@ async def on_ready():
         logging.info("Loaded as Staging Changing nickname...")
         await bot.user.edit(nick="ReplyBot_Staging")
     else:
-        client.report("Couldn't Find BOT_STATE!! Defaulting to staging")
         logging.error("Couldn't Find BOT_STATE!! Defaulting to staging")
 
     # Sets up the bot's "game"
