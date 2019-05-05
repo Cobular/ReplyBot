@@ -78,3 +78,7 @@ __pycache__/
 *.xml
 
 \.vscode/
+
+resources/discord-reply-bot-sql-8eebe9d61803\.json
+
+resources/laptop-service-account\.json

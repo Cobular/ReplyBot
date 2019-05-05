@@ -1,5 +1,5 @@
 # ReplyBot
-[![eployment Pipeline](https://app.buddy.works/royalcows9/replybot/pipelines/pipeline/178273/badge.svg?token=6b53e65c63b07811edad546219258fe7cc34ac8203d7a2f5c8e3af6ccc3a9dca "Deployment Pipeline")](https://app.buddy.works/royalcows9/replybot/pipelines/pipeline/178273)
+[![buddy pipeline](https://app.buddy.works/royalcows9/replybot/pipelines/pipeline/186060/badge.svg?token=6b53e65c63b07811edad546219258fe7cc34ac8203d7a2f5c8e3af6ccc3a9dca "buddy pipeline")](https://app.buddy.works/royalcows9/replybot/pipelines/pipeline/186060)
 [![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
 
