@@ -6,6 +6,9 @@ services:
       - DATABASE_URL
       - BOT_TOKEN
       - BOT_STATE
+      - GOOGLE_APPLICATION_CREDENTIALS
+    logging:
+      driver: gcplogs
   db:
     image: postgres:alpine
     ports:
@@ -16,5 +19,7 @@ services:
       POSTGRES_PASSWORD: "yeet"
       POSTGRES_USER: "bot"
       POSTGRES_DB: "bot"
+    logging:
+      driver: gcplogs
 volumes:
   db_data:

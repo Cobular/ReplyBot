@@ -17,17 +17,20 @@ from discord.ext import commands
 import os
 import logging
 
+
+BOT_TOKEN = os.environ['BOT_TOKEN']
+BOT_STATE = os.environ['BOT_STATE']
+
 # Sets up the google compute cloud logging
 try:
     import googleclouddebugger
 
     googleclouddebugger.enable(
-        module='ReplyBot',
+        module='ReplyBot' + BOT_STATE,
         version='3.2'
     )
 except ImportError:
     logging.error("Failed to connect to google cloud debugger!")
-
 
 # long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
@@ -35,8 +38,6 @@ bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command do
 logging.basicConfig(level=logging.INFO)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-BOT_TOKEN = os.environ['BOT_TOKEN']
-BOT_STATE = os.environ['BOT_STATE']
 
 # Bot connection URL:
 #   https://discordapp.com/oauth2/authorize?client_id=494936000360087563&scope=bot&permissions=201620576
