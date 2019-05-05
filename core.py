@@ -16,21 +16,14 @@ import discord
 from discord.ext import commands
 import os
 import logging
+from tools import gce
 
+# Sets up all the google cloud stuff
+gce.startup()
+client = gce.client
 
 BOT_TOKEN = os.environ['BOT_TOKEN']
 BOT_STATE = os.environ['BOT_STATE']
-
-# Sets up the google compute cloud logging
-try:
-    import googleclouddebugger
-
-    googleclouddebugger.enable(
-        module='ReplyBot' + BOT_STATE,
-        version='3.2'
-    )
-except ImportError:
-    logging.error("Failed to connect to google cloud debugger!")
 
 # long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
@@ -57,6 +50,7 @@ if __name__ == '__main__':
             bot.load_extension(extension)
             logging.info(f'Successfully loaded extension {extension}')
         except Exception as e:
+            client.report_exception()
             logging.error(f'Failed to load extension {extension}.')
 
 
@@ -71,6 +65,7 @@ async def on_ready():
         logging.info("Loaded as Staging Changing nickname...")
         await bot.user.edit(nick="ReplyBot_Staging")
     else:
+        client.report("Couldn't Find BOT_STATE!! Defaulting to staging")
         logging.error("Couldn't Find BOT_STATE!! Defaulting to staging")
 
     # Sets up the bot's "game"
