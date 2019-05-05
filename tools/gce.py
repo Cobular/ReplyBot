@@ -1,5 +1,8 @@
 import os
 import logging
+import sys
+from tools.error_logger import GCELogHandler
+
 from google.cloud import error_reporting
 import googlecloudprofiler
 
@@ -43,4 +46,19 @@ def startup():
     except (ValueError, NotImplementedError):
         client.report_exception()  # Handle errors here
 
+    logger = logging.getLogger()
+    handler: GCELogHandler = GCELogHandler(client)
+    handler.setLevel(logging.ERROR)
+    logger.addHandler(handler)
+
+
     # Cloud Logging was really hard, I used these instructions https://www.eightypercent.net/post/docker-gcplogs.html
+
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    client.report_exception()
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
