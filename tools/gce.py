@@ -48,11 +48,8 @@ def startup():
 
     logger = logging.getLogger()
     handler: GCELogHandler = GCELogHandler(client)
-    #formatter: logging.Formatter = logging.Formatter()
-    #handler.setStream()
     handler.setLevel(logging.ERROR)
     logger.addHandler(handler)
-    logger.exception("AHHHH!")
 
 
     # Cloud Logging was really hard, I used these instructions https://www.eightypercent.net/post/docker-gcplogs.html

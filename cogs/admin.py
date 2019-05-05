@@ -13,7 +13,7 @@ class AdminCog(commands.Cog, name="Admin Commands"):
     # Hidden means it won't show up on the default help.
     @commands.command(name='load new cogs', hidden=True)
     @commands.is_owner()
-    async def cog_load_cogs(self, ctx, *, cog: str):
+    async def load_cogs(self, ctx, *, cog: str):
         """Command which Loads a Module.
         Remember to use dot path. e.g: cogs.owner"""
 
