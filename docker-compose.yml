@@ -9,6 +9,8 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS
     logging:
       driver: gcplogs
+      options:
+        gcp-log-cmd: 'true'
   db:
     image: postgres:alpine
     ports:
