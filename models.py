@@ -86,12 +86,15 @@ def create_db():
 
 
 def print_model_sql():
-    created_table = CreateTable(TempMessage.__table__)
+    created_table = CreateTable(Message.__table__)
     tableCompiled = created_table.compile(engine)
-    print(tableCompiled)
+    print(str(tableCompiled) + ';')
+    reated_table = CreateTable(TempMessage.__table__)
+    tableCompiled = created_table.compile(engine)
+    print(str(tableCompiled) + ';')
 
 
-def make_session():
+def make_session() -> Session:
     """ Makes a database session needed to access the DB. Be sure to close the session afterwards!
 
     :return db_session: a Session for the database above

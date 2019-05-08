@@ -29,8 +29,6 @@ BOT_STATE = os.environ['BOT_STATE']
 # long_help_formatter = commands.HelpFormatter(False, False, 100)
 bot = commands.Bot(command_prefix='r!', command_not_found="Heck! That command doesn't exist!!",
                    description="Thanks for using ReplyBot, Replying for Gamers!")
-logging.basicConfig(level=logging.INFO)
-# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
 # Bot connection URL:

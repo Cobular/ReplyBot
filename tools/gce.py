@@ -12,14 +12,17 @@ client: error_reporting.client = None
 def startup():
     global client
     # noinspection PyBroadException
+
+    # Sets up the error handler
     try:
         BOT_STATE = os.environ['BOT_STATE']
+        client = error_reporting.Client(service="ReplyBot" + BOT_STATE)
     except Exception:
         client = error_reporting.Client(service="ReplyBot_Pre-envion")
         client.report_exception()
 
-    # Sets up the error handler
-    client = error_reporting.Client(service="ReplyBot" + BOT_STATE)
+    # Starts the logger
+    logging.basicConfig(level=logging.INFO)
 
     # Sets up the google compute cloud logging
     try:
@@ -46,11 +49,12 @@ def startup():
     except (ValueError, NotImplementedError):
         client.report_exception()  # Handle errors here
 
-    logger = logging.getLogger()
+    root_logger = logging.getLogger()
+    db_logger = logging.getLogger('sqlalchemy.exc')
     handler: GCELogHandler = GCELogHandler(client)
     handler.setLevel(logging.ERROR)
-    logger.addHandler(handler)
-
+    root_logger.addHandler(handler)
+    db_logger.addHandler(handler)
 
     # Cloud Logging was really hard, I used these instructions https://www.eightypercent.net/post/docker-gcplogs.html
 

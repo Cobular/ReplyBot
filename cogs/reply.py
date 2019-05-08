@@ -6,11 +6,12 @@ Also is responsible for saving messages sent to the bot
 import datetime
 import logging
 import typing
+import traceback
 
 import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
-from sqlalchemy import func
+from sqlalchemy import func, exc
 
 from models import Message, make_session, TempMessage
 from tools import methods
@@ -235,18 +236,33 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
                                           message_channel=message.channel.id, message_server=message.guild.id,
                                           message_id=message.id)
                 session.add(current_message)
-            session.commit()
+            try:
+                session.commit()
+            except exc.OperationalError:
+                session.close()
+                logging.exception("Message failed to commit", exc_info=traceback.format_exc())
             session.close()
+            logging.info("Another Message Saved!")  # For metric tracking
             Message.prune_db(50000)
 
-    @commands.Cog.listener()
-    async def on_message_delete(self, message):
+    @commands.Cog.listener("on_message_delete")
+    async def respect_deletions(self, message):
         session = make_session()
-        new_message = session.query(Message).filter(Message.message_id == message.id).first()
-        if new_message is not None:
-            session.delete(new_message)
+        deleted_message = session.query(Message).filter(Message.message_id == message.id).first()
+        if deleted_message is not None:
+            session.delete(deleted_message)
             session.commit()
         session.close()
+
+    @commands.Cog.listener("on_message_edit")
+    async def respect_edits(self, before: discord.Message, after: discord.Message):
+        session = make_session()
+        old_message: Message = session.query(Message).filter(Message.message_id == before.id).first()
+        if old_message is not None:
+            old_message.message_content = after.clean_content
+            session.commit()
+        session.close()
+
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -287,7 +303,6 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         elif original_message.message_sent_time >= datetime.datetime.now() - datetime.timedelta(minutes=5):
             request_ctx = await self.bot.get_context(message)
             original_message_data: discord.Message = await get_message(request_ctx, original_message.message_id)
-            # channel_object = await self.bot.get_channel()
             junk, response_content = split_message(message.clean_content)
             await self.send_response(request_ctx, response_content, message.channel,
                                      original_message_data.clean_content,

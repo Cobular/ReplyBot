@@ -15,3 +15,4 @@ class GCELogHandler(StreamHandler):
         else:
             self.client.report(record.getMessage())
         StreamHandler.emit(self, record)
+        print("GCE Handled")
