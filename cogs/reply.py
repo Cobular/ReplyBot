@@ -14,7 +14,7 @@ from discord.ext.commands.context import Context
 from sqlalchemy import func, exc
 
 from models import Message, make_session, TempMessage
-from tools import methods
+from tools import methods, elastisearch
 
 
 def split_message(user_input: str):
@@ -230,20 +230,15 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             await self.reacted_message_response(message)
             skip_saving = True
         if not skip_saving:
-            session = make_session()
             if message.clean_content != '':
-                current_message = Message(message_content=message.clean_content, message_sender=message.author.id,
-                                          message_channel=message.channel.id, message_server=message.guild.id,
-                                          message_id=message.id)
-                session.add(current_message)
-            try:
-                session.commit()
-            except exc.OperationalError:
-                session.close()
-                logging.exception("Message failed to commit", exc_info=traceback.format_exc())
-            session.close()
+                current_message = elastisearch.TestMessageDoc(message_content=message.clean_content,
+                                                              message_sender=message.author.id,
+                                                              message_channel=message.channel.id,
+                                                              message_server=message.guild.id,
+                                                              message_id=message.id,
+                                                              message_sent_time=datetime.datetime.now())
+                print(current_message.save())
             logging.info("Another Message Saved!")  # For metric tracking
-            Message.prune_db(50000)
 
     @commands.Cog.listener("on_message_delete")
     async def respect_deletions(self, message):
@@ -262,7 +257,6 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             old_message.message_content = after.clean_content
             session.commit()
         session.close()
-
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):

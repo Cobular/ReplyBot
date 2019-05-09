@@ -47,6 +47,12 @@ class RandomCog(commands.Cog, name="Random Commands"):
         if re.search("flex tape", message.content, re.IGNORECASE):
             await message.add_reaction('™')
 
+    @commands.command()
+    async def info(self, ctx):
+        await ctx.send("This is ReplyBot, replying for Gamers!\n"
+                       "Developed and maintained by <@249705405372956672>. "
+                       "See `r!help` for more information aBout the bot's functionality.")
+
 
 def setup(bot):
     bot.add_cog(RandomCog(bot))
