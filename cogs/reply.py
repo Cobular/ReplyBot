@@ -6,12 +6,10 @@ Also is responsible for saving messages sent to the bot
 import datetime
 import logging
 import typing
-import traceback
 
 import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
-from sqlalchemy import func, exc
 
 from models import Message, make_session, TempMessage
 from tools import methods, elastisearch
@@ -96,7 +94,7 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
 
     @commands.command(usage="[<channel> <target_user>] <search term> [〰 <response>]")
     async def reply(self, ctx: Context, channel: typing.Optional[discord.TextChannel],
-                    target_user: typing.Optional[discord.Member], *, user_input):
+                    target_user: typing.Optional[discord.Member], *, user_input: str):
         """ Searches the past messages in a server for the text after the command.
 
         Place a 〰 (:wavy-dash:) between your search string and your response to activate the response functionality.
@@ -106,12 +104,9 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         search term: (Required) The part of a message to search for.
         response: (Optional) Your response to append to the end of the message. Make sure to add the 〰 to delineate.
         """
-        # Null Check is used to tell if a hit was found must be initialized here
-        new_message: Message = None
-
         search_terms, response = split_message(user_input)
 
-        new_message = database_search(ctx, channel, target_user, search_terms)
+        new_message = await database_search(ctx, channel, target_user, search_terms)
 
         # Catch the failure to find a message before other things are requested of new_message, avoiding null references
         if not new_message:
@@ -122,17 +117,18 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
             return
 
         # Had issues getting the children of new_message, this reduced them
-        new_message_content = new_message.message_content
-        new_message_sender_id = new_message.message_sender
-        new_message_channel_id = new_message.message_channel
-        new_message_sent_time = new_message.message_sent_time
-        new_message_id = new_message.message_id
+        new_message_content = new_message.clean_content
+        new_message_sender_id = new_message.author.id
+        new_message_channel_id = new_message.channel.id
+        new_message_sent_time = new_message.created_at
+        new_message_id = new_message.id
 
         await self.send_response(ctx, response, channel, new_message_content, new_message_sender_id,
                                  new_message_channel_id, new_message_sent_time, new_message_id)
 
-    async def send_response(self, ctx: Context, response, channel, original_content, original_sender_id,
-                            original_channel_id, original_sent_time, original_message_id):
+    async def send_response(self, ctx: Context, response: str, channel: discord.TextChannel, original_content: str,
+                            original_sender_id: int, original_channel_id: int, original_sent_time: datetime.datetime,
+                            original_message_id: int):
         """Checks that the requester has the read_messages permission on the requested channel.
 
         If so, sends message. If not, sends error to the user

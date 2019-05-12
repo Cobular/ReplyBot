@@ -56,7 +56,6 @@ def test_search_2(message: str, server_id: int, channel_id: int, user_id: typing
             {"term": {"message_channel": channel_id}},
             {"term": {"message_server": server_id}}
         ]
-    print(filter_data)
     s = Search(index="test_messages_4").from_dict(
         {
             "query": {
