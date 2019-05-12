@@ -38,8 +38,9 @@ async def get_message(ctx, message_id: int):
     return message
 
 
-def database_search(ctx: Context, channel: typing.Optional[discord.TextChannel],
-                    target_user: typing.Optional[discord.Member], search_terms: str) -> discord.message.Message:
+async def database_search(ctx: Context, channel: typing.Optional[discord.TextChannel],
+                          target_user: typing.Optional[discord.Member], search_terms: str) -> typing.Optional[
+                          discord.Message]:
     """Searches through the database for the search for the requested message.
 
     :param ctx: The Context of the message
@@ -48,65 +49,14 @@ def database_search(ctx: Context, channel: typing.Optional[discord.TextChannel],
     :param search_terms: The main text that the user is searching for
     :return message: The message found. Returns None if no message is found
     """
-    session = make_session()
-    new_message = None
-
-    if channel is not None and target_user is not None:
-        if search_terms != "":
-            new_message = session.query(Message
-                                        # func.lower() insures that case isn't an issue
-                                        ).filter(
-                func.lower(Message.message_content).contains(func.lower(search_terms)),
-                Message.message_channel == channel.id,
-                Message.message_sender == target_user.id,
-                Message.message_server == ctx.guild.id
-            ).order_by(Message.message_sent_time.desc()).first()
-        else:
-            new_message = session.query(Message
-                                        ).filter(Message.message_channel == channel.id,
-                                                 Message.message_sender == target_user.id,
-                                                 Message.message_server == ctx.guild.id
-                                                 ).order_by(Message.message_sent_time.desc()).first()
-    elif channel is not None:
-        if search_terms != "":
-            new_message = session.query(Message
-                                        ).filter(
-                func.lower(Message.message_content).contains(func.lower(search_terms)),
-                Message.message_channel == channel.id,
-                Message.message_server == ctx.guild.id
-            ).order_by(Message.message_sent_time.desc()).first()
-        else:
-            new_message = session.query(Message
-                                        ).filter(Message.message_channel == channel.id,
-                                                 Message.message_server == ctx.guild.id
-                                                 ).order_by(Message.message_sent_time.desc()).first()
-    elif target_user is not None:
-        if search_terms != "":
-            new_message = session.query(Message
-                                        ).filter(
-                func.lower(Message.message_content).contains(func.lower(search_terms)),
-                Message.message_sender == target_user.id,
-                Message.message_server == ctx.guild.id
-            ).order_by(Message.message_sent_time.desc()).first()
-        else:
-            new_message = session.query(Message
-                                        ).filter(Message.message_sender == target_user.id,
-                                                 Message.message_server == ctx.guild.id
-                                                 ).order_by(Message.message_sent_time.desc()).first()
+    if channel is None:
+        channel = ctx.message.channel
+    rsp = elastisearch.test_search_2(search_terms, ctx.guild.id, channel.id, target_user)
+    if rsp["hits"]["hits"].__len__() == 0:
+        final_rsp = None
     else:
-        if search_terms != '':
-            new_message = session.query(Message
-                                        ).filter(
-                func.lower(Message.message_content).contains(func.lower(search_terms)),
-                Message.message_server == ctx.guild.id
-            ).order_by(Message.message_sent_time.desc()).first()
-        else:
-            new_message = session.query(Message
-                                        ).filter(Message.message_server == ctx.guild.id
-                                                 ).order_by(Message.message_sent_time.desc()).first()
-
-    session.close()
-    return new_message
+        final_rsp = await ctx.fetch_message(rsp["hits"]["hits"][0]["_source"]["message_id"])
+    return final_rsp
 
 
 async def send_original_message_no_channel(ctx, message_content, message_sender, message_sent_time,
