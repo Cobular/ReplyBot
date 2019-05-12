@@ -175,16 +175,11 @@ class ReplyCog(commands.Cog, name="Reply Commands"):
         if message.content.startswith("〰"):
             await self.reacted_message_response(message)
             skip_saving = True
-        if not skip_saving:
-            if message.clean_content != '':
-                current_message = elastisearch.TestMessageDoc(message_content=message.clean_content,
-                                                              message_sender=message.author.id,
-                                                              message_channel=message.channel.id,
-                                                              message_server=message.guild.id,
-                                                              message_id=message.id,
-                                                              message_sent_time=datetime.datetime.now())
-                print(current_message.save())
-            logging.info("Another Message Saved!")  # For metric tracking
+        if not skip_saving and message.clean_content != '':
+            success = elastisearch.TestMessageDoc.save_message(
+                content=message.clean_content, sender_id=message.author.id, channel_id=message.channel.id,
+                server_id=message.guild.id, message_id=message.id)
+            print(f"Message was saved: {success}")  # For metric tracking
 
     @commands.Cog.listener("on_message_delete")
     async def respect_deletions(self, message):
