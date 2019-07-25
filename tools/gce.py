@@ -15,7 +15,8 @@ def startup():
     try:
         BOT_STATE = os.environ['BOT_STATE']
     except Exception:
-        client = error_reporting.Client(service="ReplyBot_Pre-envion")
+        BOT_STATE = "_Pre-environ"
+        client = error_reporting.Client(service="ReplyBot_Pre-environ")
         client.report_exception()
 
     # Sets up the error handler
