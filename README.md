@@ -1,7 +1,12 @@
-# ReplyBot
-[![buddy pipeline](https://app.buddy.works/royalcows9/replybot/pipelines/pipeline/186060/badge.svg?token=6b53e65c63b07811edad546219258fe7cc34ac8203d7a2f5c8e3af6ccc3a9dca "buddy pipeline")](https://app.buddy.works/royalcows9/replybot/pipelines/pipeline/186060)
-[![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
+# Archived
+This bot was sherlocked really hard by discord, so it's no longer of any value!!
+Was fun tho.
+
+To all 2 of you that will see this, take a look at https://github.com/JakeCover/distest, a discord bot testing library that this project spawned!
+
+# ReplyBot
+[![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
 ReplyBot, Replying for Gamers!
 
